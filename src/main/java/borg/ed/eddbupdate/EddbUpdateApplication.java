@@ -9,19 +9,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import borg.ed.eddbupdate.eddb.EddbReader;
+import borg.ed.universe.UniverseApplication;
 
 /**
- * Application
+ * EddbUpdateApplication
  *
  * @author <a href="mailto:b.guenther@xsite.de">Boris Guenther</a>
  */
 @Configuration
-@Import(borg.ed.universe.Application.class)
-public class Application {
+@Import(UniverseApplication.class)
+public class EddbUpdateApplication {
 
-	static final Logger logger = LoggerFactory.getLogger(Application.class);
+	static final Logger logger = LoggerFactory.getLogger(EddbUpdateApplication.class);
 
-	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(Application.class);
+	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(EddbUpdateApplication.class);
 
 	public static void main(String[] args) throws Exception {
 		APPCTX.getBean(EddbReader.class).loadEddbDataIntoElasticsearch();
