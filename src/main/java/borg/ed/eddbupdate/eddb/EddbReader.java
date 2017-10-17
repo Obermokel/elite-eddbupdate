@@ -82,19 +82,19 @@ public class EddbReader {
         long start = System.currentTimeMillis();
 
         File edsmFile = new File(BASE_DIR, "systemsWithCoordinates.json");
-        //this.downloadIfUpdated("https://www.edsm.net/dump/systemsWithCoordinates.json", edsmFile);
+        this.downloadIfUpdated("https://www.edsm.net/dump/systemsWithCoordinates.json", edsmFile);
         Map<Long, EdsmSystem> edsmSystemsById = this.loadEdsmSystemsById(edsmFile);
 
         File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
-        //this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
+        this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
         this.readSystemsPopulatedJsonlIntoRepo(systemsPopulatedFile, edsmSystemsById, universeService, systemRepo);
 
         File systemsFile = new File(BASE_DIR, "systems.csv");
-        //this.downloadIfUpdated("https://eddb.io/archive/v5/systems.csv", systemsFile);
+        this.downloadIfUpdated("https://eddb.io/archive/v5/systems.csv", systemsFile);
         this.readSystemsCsvIntoRepo(systemsFile, edsmSystemsById, universeService, systemRepo);
 
         File bodiesFile = new File(BASE_DIR, "bodies.jsonl");
-        //this.downloadIfUpdated("https://eddb.io/archive/v5/bodies.jsonl", bodiesFile);
+        this.downloadIfUpdated("https://eddb.io/archive/v5/bodies.jsonl", bodiesFile);
         this.readBodiesJsonlIntoRepo(bodiesFile, universeService, bodyRepo);
 
         long end = System.currentTimeMillis();
@@ -125,7 +125,7 @@ public class EddbReader {
     private void readSystemsCsvIntoRepo(File file, Map<Long, EdsmSystem> edsmSystemsById, UniverseService uniserv, StarSystemRepository repo) throws IOException {
         final DateFormat dfEta = new SimpleDateFormat("MMM dd @ HH:mm", Locale.US);
         final int batchSize = 1000;
-        //		final List<StarSystem> batch = new ArrayList<>(batchSize);
+        final List<StarSystem> batch = new ArrayList<>(batchSize);
         final int total = this.countLines(file) - 1;
 
         EddbSystemCsvRecordParser csvRecordParser = new EddbSystemCsvRecordParser();
@@ -146,11 +146,11 @@ public class EddbReader {
                     EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
                     starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
                     starSystem.setFirstDiscoveredBy(null);
-                    //					batch.add(starSystem);
-                    //					if (batch.size() >= batchSize) {
-                    //						repo.saveAll(batch);
-                    //					}
-                    repo.save(starSystem);
+                    batch.add(starSystem);
+                    if (batch.size() >= batchSize) {
+                        repo.saveAll(batch);
+                        batch.clear();
+                    }
 
                     if (++n % batchSize == 0) {
                         long millis = System.currentTimeMillis() - startBatch;
@@ -165,16 +165,16 @@ public class EddbReader {
                     logger.warn("Corrupt line in " + file + ": " + record, e);
                 }
             }
-            //			if (!batch.isEmpty()) {
-            //				repo.saveAll(batch);
-            //			}
+            if (!batch.isEmpty()) {
+                repo.saveAll(batch);
+            }
         }
     }
 
     private void readSystemsPopulatedJsonlIntoRepo(File file, Map<Long, EdsmSystem> edsmSystemsById, UniverseService uniserv, StarSystemRepository repo) throws IOException {
         final DateFormat dfEta = new SimpleDateFormat("MMM dd @ HH:mm", Locale.US);
         final int batchSize = 1000;
-        //		final List<StarSystem> batch = new ArrayList<>(batchSize);
+        final List<StarSystem> batch = new ArrayList<>(batchSize);
         final int total = this.countLines(file) - 1;
 
         //@formatter:off
@@ -198,11 +198,11 @@ public class EddbReader {
                     EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
                     starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
                     starSystem.setFirstDiscoveredBy(null);
-                    //					batch.add(starSystem);
-                    //					if (batch.size() >= batchSize) {
-                    //						repo.saveAll(batch);
-                    //					}
-                    repo.save(starSystem);
+                    batch.add(starSystem);
+                    if (batch.size() >= batchSize) {
+                        repo.saveAll(batch);
+                        batch.clear();
+                    }
 
                     if (++n % batchSize == 0) {
                         long millis = System.currentTimeMillis() - startBatch;
@@ -220,9 +220,9 @@ public class EddbReader {
                 }
                 line = reader.readLine();
             }
-            //			if (!batch.isEmpty()) {
-            //				repo.saveAll(batch);
-            //			}
+            if (!batch.isEmpty()) {
+                repo.saveAll(batch);
+            }
         }
     }
 
@@ -250,6 +250,7 @@ public class EddbReader {
     private void readBodiesJsonlIntoRepo(File file, UniverseService uniserv, BodyRepository repo) throws IOException {
         final DateFormat dfEta = new SimpleDateFormat("MMM dd @ HH:mm", Locale.US);
         final int batchSize = 1000;
+        final List<Body> batch = new ArrayList<>(batchSize);
         final int total = this.countLines(file) - 1;
 
         //@formatter:off
@@ -269,17 +270,27 @@ public class EddbReader {
                     Body body = uniserv.findBodyByName(eddbBody.getName());
                     if (body == null) {
                         body = this.eddbBodyToBody(eddbBody);
-                        StarSystem starSystem = universeService.findStarSystemByEddbId(eddbBody.getSystem_id());
-                        if (starSystem != null) {
-                            body.setCoord(starSystem.getCoord());
-                            body.setStarSystemId(starSystem.getId());
-                            body.setStarSystemName(starSystem.getName());
-                            body.setReserves(starSystem.getReserves());
+                        if (body != null) {
+                            StarSystem starSystem = universeService.findStarSystemByEddbId(eddbBody.getSystem_id());
+                            if (starSystem != null) {
+                                body.setCoord(starSystem.getCoord());
+                                body.setStarSystemId(starSystem.getId());
+                                body.setStarSystemName(starSystem.getName());
+                                body.setReserves(starSystem.getReserves());
+                            }
                         }
                     }
-                    body.setCreatedAt(eddbBody.getCreated_at());
-                    body.setFirstDiscoveredBy(null);
-                    repo.save(body);
+                    if (body != null) {
+                        body.setCreatedAt(eddbBody.getCreated_at());
+                        body.setFirstDiscoveredBy(null);
+                        if (body.getCoord() != null) {
+                            batch.add(body);
+                        }
+                    }
+                    if (batch.size() >= batchSize) {
+                        repo.saveAll(batch);
+                        batch.clear();
+                    }
 
                     if (++n % batchSize == 0) {
                         long millis = System.currentTimeMillis() - startBatch;
@@ -297,57 +308,65 @@ public class EddbReader {
                 }
                 line = reader.readLine();
             }
+            if (!batch.isEmpty()) {
+                repo.saveAll(batch);
+            }
         }
     }
 
     private Body eddbBodyToBody(EddbBody eddbBody) {
-        Body result = new Body();
-
-        result.setId(null);
-        result.setEddbId(eddbBody.getId());
-        result.setEdsmId(null);
-        result.setCreatedAt(eddbBody.getCreated_at());
-        result.setUpdatedAt(eddbBody.getUpdated_at());
-        result.setCoord(null);
-        result.setName(eddbBody.getName());
-        result.setDistanceToArrival(eddbBody.getDistance_to_arrival());
-        result.setStarClass(StarClass.fromJournalValue(eddbBody.getSpectral_class()));
         try {
-            result.setPlanetClass(PlanetClass.fromJournalValue(eddbBody.getType_name()));
-        } catch (IllegalArgumentException e) {
-            if (eddbBody.getType_name().toLowerCase().contains("neutron")) {
-                result.setStarClass(StarClass.N);
-            } else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
-                result.setStarClass(StarClass.H);
-            } else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
-                result.setStarClass(StarClass.H);
-            }
-        }
-        result.setSurfaceTemperature(eddbBody.getSurface_temperature());
-        result.setAge(eddbBody.getAge());
-        result.setSolarMasses(eddbBody.getSolar_masses());
-        result.setVolcanismType(VolcanismType.fromJournalValue(eddbBody.getVolcanism_type_name()));
-        result.setAtmosphereType(AtmosphereType.fromJournalValue(eddbBody.getAtmosphere_type_name()));
-        result.setTerraformingState(TerraformingState.fromJournalValue(eddbBody.getTerraforming_state_name()));
-        result.setEarthMasses(eddbBody.getEarth_masses());
-        result.setRadius(eddbBody.getRadius());
-        result.setGravity(eddbBody.getGravity());
-        result.setSurfacePressure(eddbBody.getSurface_pressure());
-        result.setOrbitalPeriod(eddbBody.getOrbital_period());
-        result.setSemiMajorAxis(eddbBody.getSemi_major_axis());
-        result.setOrbitalEccentricity(eddbBody.getOrbital_eccentricity());
-        result.setOrbitalInclination(eddbBody.getOrbital_inclination());
-        result.setArgOfPeriapsis(eddbBody.getArg_of_periapsis());
-        result.setRotationalPeriod(eddbBody.getRotational_period());
-        result.setTidallyLocked(eddbBody.getIs_rotational_period_tidally_locked());
-        result.setAxisTilt(eddbBody.getAxis_tilt());
-        result.setIsLandable(eddbBody.getIs_landable());
-        result.setReserves(null);
-        result.setRings(this.ringsToRings(eddbBody.getRings()));
-        result.setAtmosphereShares(this.sharesToAtmosphereShares(eddbBody.getAtmosphere_composition()));
-        result.setMaterialShares(this.sharesToMaterialShares(eddbBody.getMaterials()));
+            Body result = new Body();
 
-        return result;
+            result.setId(null);
+            result.setEddbId(eddbBody.getId());
+            result.setEdsmId(null);
+            result.setCreatedAt(eddbBody.getCreated_at());
+            result.setUpdatedAt(eddbBody.getUpdated_at());
+            result.setCoord(null);
+            result.setName(eddbBody.getName());
+            result.setDistanceToArrival(eddbBody.getDistance_to_arrival());
+            result.setStarClass(StarClass.fromJournalValue(eddbBody.getSpectral_class()));
+            try {
+                result.setPlanetClass(PlanetClass.fromJournalValue(eddbBody.getType_name()));
+            } catch (IllegalArgumentException e) {
+                if (eddbBody.getType_name().toLowerCase().contains("neutron")) {
+                    result.setStarClass(StarClass.N);
+                } else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
+                    result.setStarClass(StarClass.H);
+                } else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
+                    result.setStarClass(StarClass.H);
+                }
+            }
+            result.setSurfaceTemperature(eddbBody.getSurface_temperature());
+            result.setAge(eddbBody.getAge());
+            result.setSolarMasses(eddbBody.getSolar_masses());
+            result.setVolcanismType(VolcanismType.fromJournalValue(eddbBody.getVolcanism_type_name()));
+            result.setAtmosphereType(AtmosphereType.fromJournalValue(eddbBody.getAtmosphere_type_name()));
+            result.setTerraformingState(TerraformingState.fromJournalValue(eddbBody.getTerraforming_state_name()));
+            result.setEarthMasses(eddbBody.getEarth_masses());
+            result.setRadius(eddbBody.getRadius());
+            result.setGravity(eddbBody.getGravity());
+            result.setSurfacePressure(eddbBody.getSurface_pressure());
+            result.setOrbitalPeriod(eddbBody.getOrbital_period());
+            result.setSemiMajorAxis(eddbBody.getSemi_major_axis());
+            result.setOrbitalEccentricity(eddbBody.getOrbital_eccentricity());
+            result.setOrbitalInclination(eddbBody.getOrbital_inclination());
+            result.setArgOfPeriapsis(eddbBody.getArg_of_periapsis());
+            result.setRotationalPeriod(eddbBody.getRotational_period());
+            result.setTidallyLocked(eddbBody.getIs_rotational_period_tidally_locked());
+            result.setAxisTilt(eddbBody.getAxis_tilt());
+            result.setIsLandable(eddbBody.getIs_landable());
+            result.setReserves(null);
+            result.setRings(this.ringsToRings(eddbBody.getRings()));
+            result.setAtmosphereShares(this.sharesToAtmosphereShares(eddbBody.getAtmosphere_composition()));
+            result.setMaterialShares(this.sharesToMaterialShares(eddbBody.getMaterials()));
+
+            return result;
+        } catch (IllegalArgumentException e) {
+            logger.warn(e.getMessage());
+            return null;
+        }
     }
 
     private List<Ring> ringsToRings(List<borg.ed.eddbupdate.eddb.EddbBody.Ring> list) {
