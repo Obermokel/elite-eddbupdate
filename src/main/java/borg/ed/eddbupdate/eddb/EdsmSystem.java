@@ -21,8 +21,8 @@ public class EdsmSystem implements Serializable {
     @Id
     @SerializedName("id")
     private Long id = null;
-    @SerializedName("name")
-    private String name = null;
+    //    @SerializedName("name")
+    //    private String name = null;
     @Field(type = FieldType.Date)
     @SerializedName("date")
     private Date createdAt = null;
@@ -58,7 +58,7 @@ public class EdsmSystem implements Serializable {
 
     @Override
     public String toString() {
-        return "#" + this.id + " " + this.name;
+        return "#" + this.id; // + " " + this.name;
     }
 
     public Long getId() {
@@ -69,13 +69,13 @@ public class EdsmSystem implements Serializable {
         this.id = id;
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+    //    public String getName() {
+    //        return this.name;
+    //    }
+    //
+    //    public void setName(String name) {
+    //        this.name = name;
+    //    }
 
     public Date getCreatedAt() {
         return this.createdAt;
