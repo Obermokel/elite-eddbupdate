@@ -34,6 +34,7 @@ public class EddbUpdateApplication {
         return new EddbReader();
     }
 
+    @Bean
     public EddnDumpReader eddnDumpReader() {
         return new EddnDumpReader();
     }
