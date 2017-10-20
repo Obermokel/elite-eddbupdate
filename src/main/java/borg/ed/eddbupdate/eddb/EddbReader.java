@@ -145,7 +145,6 @@ public class EddbReader {
                     }
                     EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
                     starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
-                    starSystem.setFirstDiscoveredBy(null);
                     batch.add(starSystem);
                     if (batch.size() >= batchSize) {
                         repo.saveAll(batch);
@@ -197,7 +196,6 @@ public class EddbReader {
                     }
                     EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
                     starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
-                    starSystem.setFirstDiscoveredBy(null);
                     batch.add(starSystem);
                     if (batch.size() >= batchSize) {
                         repo.saveAll(batch);
@@ -282,7 +280,6 @@ public class EddbReader {
                     }
                     if (body != null) {
                         body.setCreatedAt(eddbBody.getCreated_at());
-                        body.setFirstDiscoveredBy(null);
                         if (body.getCoord() != null) {
                             batch.add(body);
                         }
