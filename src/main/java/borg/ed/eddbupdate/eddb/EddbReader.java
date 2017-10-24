@@ -87,7 +87,7 @@ public class EddbReader {
 
 		File edsmFile = new File(BASE_DIR, "systemsWithCoordinates.json");
 		this.downloadIfUpdated("https://www.edsm.net/dump/systemsWithCoordinates.json", edsmFile);
-		Map<Long, EdsmSystem> edsmSystemsById = this.loadEdsmSystemsById(edsmFile);
+		Map<Long, EdsmSystem> edsmSystemsById = new HashMap<>(); // this.loadEdsmSystemsById(edsmFile);
 
 		File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
 		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
@@ -162,10 +162,19 @@ public class EddbReader {
 				}
 				if (starSystem == null) {
 					starSystem = this.eddbSystemToStarSystem(eddbSystem);
+					//					EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
+					//					starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
+					batch.add(starSystem);
+				} else if (!eddbSystem.getId().equals(starSystem.getEddbId())
+						|| (Boolean.TRUE.equals(eddbSystem.getNeeds_permit()) && !Boolean.TRUE.equals(starSystem.getNeedsPermit()))
+						|| (Boolean.FALSE.equals(eddbSystem.getNeeds_permit()) && starSystem.getNeedsPermit() != null)) {
+					starSystem.setEddbId(eddbSystem.getId());
+					starSystem.setEdsmId(eddbSystem.getEdsm_id());
+					starSystem.setNeedsPermit(Boolean.TRUE.equals(eddbSystem.getNeeds_permit()) ? Boolean.TRUE : null);
+					//					EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
+					//					starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
+					batch.add(starSystem);
 				}
-				EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
-				starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
-				batch.add(starSystem);
 				if (batch.size() >= batchSize) {
 					this.systemRepo.saveAll(batch);
 					batch.clear();
@@ -220,10 +229,19 @@ public class EddbReader {
 					}
 					if (starSystem == null) {
 						starSystem = this.eddbSystemToStarSystem(eddbSystem);
+						//					EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
+						//					starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
+						batch.add(starSystem);
+					} else if (!eddbSystem.getId().equals(starSystem.getEddbId())
+							|| (Boolean.TRUE.equals(eddbSystem.getNeeds_permit()) && !Boolean.TRUE.equals(starSystem.getNeedsPermit()))
+							|| (Boolean.FALSE.equals(eddbSystem.getNeeds_permit()) && starSystem.getNeedsPermit() != null)) {
+						starSystem.setEddbId(eddbSystem.getId());
+						starSystem.setEdsmId(eddbSystem.getEdsm_id());
+						starSystem.setNeedsPermit(Boolean.TRUE.equals(eddbSystem.getNeeds_permit()) ? Boolean.TRUE : null);
+						//					EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
+						//					starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
+						batch.add(starSystem);
 					}
-					EdsmSystem edsmSystem = edsmSystemsById.get(eddbSystem.getEdsm_id());
-					starSystem.setCreatedAt(edsmSystem != null ? edsmSystem.getCreatedAt() : eddbSystem.getUpdated_at());
-					batch.add(starSystem);
 					if (batch.size() >= batchSize) {
 						this.systemRepo.saveAll(batch);
 						batch.clear();
@@ -319,11 +337,30 @@ public class EddbReader {
 								body.setStarSystemId(starSystem.getId());
 								body.setStarSystemName(starSystem.getName());
 								body.setReserves(starSystem.getReserves());
+								batch.add(body);
 							}
 						}
-					}
-					if (body != null) {
+					} else if (!eddbBody.getId().equals(body.getEddbId())) {
+						body.setEddbId(eddbBody.getId());
 						body.setCreatedAt(eddbBody.getCreated_at());
+						if (body.getCoord() == null || body.getStarSystemName() == null) {
+							StarSystem starSystem = null;
+							try {
+								starSystem = this.universeService.findStarSystemByEddbId(eddbBody.getSystem_id());
+							} catch (NonUniqueResultException e) {
+								// Delete all existing and create new
+								Page<StarSystem> page = this.systemRepo.findByEddbId(eddbBody.getSystem_id(), PageRequest.of(0, 10));
+								if (page.hasContent()) {
+									this.systemRepo.deleteAll(page.getContent());
+								}
+							}
+							if (starSystem != null) {
+								body.setCoord(starSystem.getCoord());
+								body.setStarSystemId(starSystem.getId());
+								body.setStarSystemName(starSystem.getName());
+								body.setReserves(starSystem.getReserves());
+							}
+						}
 						if (body.getCoord() != null) {
 							batch.add(body);
 						}
