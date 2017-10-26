@@ -90,21 +90,21 @@ public class EddbReader {
 		this.downloadIfUpdated("https://www.edsm.net/dump/systemsWithCoordinates.json", edsmFile);
 		Map<Long, EdsmSystem> edsmSystemsById = new HashMap<>(); // this.loadEdsmSystemsById(edsmFile);
 
-		File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
-		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
-		this.readSystemsPopulatedJsonlIntoRepo(systemsPopulatedFile, edsmSystemsById);
-
-		File systemsFile = new File(BASE_DIR, "systems.csv");
-		this.downloadIfUpdated("https://eddb.io/archive/v5/systems.csv", systemsFile);
-		this.readSystemsCsvIntoRepo(systemsFile, edsmSystemsById);
+		//		File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
+		//		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
+		//		this.readSystemsPopulatedJsonlIntoRepo(systemsPopulatedFile, edsmSystemsById);
+		//
+		//		File systemsFile = new File(BASE_DIR, "systems.csv");
+		//		this.downloadIfUpdated("https://eddb.io/archive/v5/systems.csv", systemsFile);
+		//		this.readSystemsCsvIntoRepo(systemsFile, edsmSystemsById);
 
 		File systemsRecentlyFile = new File(BASE_DIR, "systems_recently.csv");
 		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_recently.csv", systemsRecentlyFile);
 		this.readSystemsCsvIntoRepo(systemsRecentlyFile, edsmSystemsById);
 
-		File bodiesFile = new File(BASE_DIR, "bodies.jsonl");
-		this.downloadIfUpdated("https://eddb.io/archive/v5/bodies.jsonl", bodiesFile);
-		this.readBodiesJsonlIntoRepo(bodiesFile);
+		//		File bodiesFile = new File(BASE_DIR, "bodies.jsonl");
+		//		this.downloadIfUpdated("https://eddb.io/archive/v5/bodies.jsonl", bodiesFile);
+		//		this.readBodiesJsonlIntoRepo(bodiesFile);
 
 		File bodiesRecentlyFile = new File(BASE_DIR, "bodies_recently.jsonl");
 		this.downloadIfUpdated("https://eddb.io/archive/v5/bodies_recently.jsonl", bodiesRecentlyFile);
