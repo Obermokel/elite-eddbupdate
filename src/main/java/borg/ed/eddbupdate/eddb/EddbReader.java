@@ -88,7 +88,7 @@ public class EddbReader {
 
 		File edsmFile = new File(BASE_DIR, "systemsWithCoordinates.json");
 		this.downloadIfUpdated("https://www.edsm.net/dump/systemsWithCoordinates.json", edsmFile);
-		Map<Long, EdsmSystem> edsmSystemsById = new HashMap<>(); // this.loadEdsmSystemsById(edsmFile);
+		Map<Long, EdsmSystem> edsmSystemsById = this.loadEdsmSystemsById(edsmFile);
 
 		File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
 		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
@@ -382,9 +382,11 @@ public class EddbReader {
 						writeBatch.add(body);
 					}
 				}
-			} else if (!eddbBody.getId().equals(body.getEddbId())) {
+			} else {//if (!eddbBody.getId().equals(body.getEddbId())) { // FIXME
 				body.setEddbId(eddbBody.getId());
 				body.setCreatedAt(eddbBody.getCreated_at());
+				Body fromEddbBody = this.eddbBodyToBody(eddbBody); // FIXME
+				body.setPlanetClass(fromEddbBody == null ? null : fromEddbBody.getPlanetClass()); // FIXME
 				if (body.getCoord() == null || body.getStarSystemName() == null) {
 					StarSystem starSystem = null;
 					try {
@@ -429,7 +431,9 @@ public class EddbReader {
 			} else if ("Planet".equals(eddbBody.getGroup_name())) {
 				result.setPlanetClass(PlanetClass.fromJournalValue(eddbBody.getType_name()));
 			} else if ("Compact star".equals(eddbBody.getGroup_name())) {
-				if (eddbBody.getType_name().toLowerCase().contains("neutron")) {
+				if (eddbBody.getType_name() == null) {
+					logger.warn("type_name is null for compact star " + eddbBody.getName());
+				} else if (eddbBody.getType_name().toLowerCase().contains("neutron")) {
 					result.setStarClass(StarClass.N);
 				} else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
 					result.setStarClass(StarClass.H);
