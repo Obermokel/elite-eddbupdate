@@ -19,6 +19,7 @@ public class EddbBody implements Serializable {
 	private Date updated_at = null;
 	private String name = null;
 	private Long system_id = null;
+	private String group_name = null; // Planet, Star, Compact star, Belt, Ring
 	private String type_name = null; // PlanetClass
 	private BigDecimal distance_to_arrival = null;
 	private String spectral_class = null; // StarClass

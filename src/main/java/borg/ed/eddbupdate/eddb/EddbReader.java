@@ -90,21 +90,21 @@ public class EddbReader {
 		this.downloadIfUpdated("https://www.edsm.net/dump/systemsWithCoordinates.json", edsmFile);
 		Map<Long, EdsmSystem> edsmSystemsById = new HashMap<>(); // this.loadEdsmSystemsById(edsmFile);
 
-		//		File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
-		//		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
-		//		this.readSystemsPopulatedJsonlIntoRepo(systemsPopulatedFile, edsmSystemsById);
-		//
-		//		File systemsFile = new File(BASE_DIR, "systems.csv");
-		//		this.downloadIfUpdated("https://eddb.io/archive/v5/systems.csv", systemsFile);
-		//		this.readSystemsCsvIntoRepo(systemsFile, edsmSystemsById);
+		File systemsPopulatedFile = new File(BASE_DIR, "systems_populated.jsonl");
+		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_populated.jsonl", systemsPopulatedFile);
+		this.readSystemsPopulatedJsonlIntoRepo(systemsPopulatedFile, edsmSystemsById);
+
+		File systemsFile = new File(BASE_DIR, "systems.csv");
+		this.downloadIfUpdated("https://eddb.io/archive/v5/systems.csv", systemsFile);
+		this.readSystemsCsvIntoRepo(systemsFile, edsmSystemsById);
 
 		File systemsRecentlyFile = new File(BASE_DIR, "systems_recently.csv");
 		this.downloadIfUpdated("https://eddb.io/archive/v5/systems_recently.csv", systemsRecentlyFile);
 		this.readSystemsCsvIntoRepo(systemsRecentlyFile, edsmSystemsById);
 
-		//		File bodiesFile = new File(BASE_DIR, "bodies.jsonl");
-		//		this.downloadIfUpdated("https://eddb.io/archive/v5/bodies.jsonl", bodiesFile);
-		//		this.readBodiesJsonlIntoRepo(bodiesFile);
+		File bodiesFile = new File(BASE_DIR, "bodies.jsonl");
+		this.downloadIfUpdated("https://eddb.io/archive/v5/bodies.jsonl", bodiesFile);
+		this.readBodiesJsonlIntoRepo(bodiesFile);
 
 		File bodiesRecentlyFile = new File(BASE_DIR, "bodies_recently.jsonl");
 		this.downloadIfUpdated("https://eddb.io/archive/v5/bodies_recently.jsonl", bodiesRecentlyFile);
@@ -424,17 +424,20 @@ public class EddbReader {
 			result.setCoord(null);
 			result.setName(eddbBody.getName());
 			result.setDistanceToArrival(eddbBody.getDistance_to_arrival());
-			result.setStarClass(StarClass.fromJournalValue(eddbBody.getSpectral_class()));
-			try {
+			if ("Star".equals(eddbBody.getGroup_name())) {
+				result.setStarClass(StarClass.fromJournalValue(eddbBody.getSpectral_class()));
+			} else if ("Planet".equals(eddbBody.getGroup_name())) {
 				result.setPlanetClass(PlanetClass.fromJournalValue(eddbBody.getType_name()));
-			} catch (IllegalArgumentException e) {
+			} else if ("Compact star".equals(eddbBody.getGroup_name())) {
 				if (eddbBody.getType_name().toLowerCase().contains("neutron")) {
 					result.setStarClass(StarClass.N);
 				} else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
 					result.setStarClass(StarClass.H);
-				} else if (eddbBody.getType_name().toLowerCase().contains("hole")) {
-					result.setStarClass(StarClass.H);
+				} else {
+					throw new IllegalArgumentException("Unknown compact star type '" + eddbBody.getType_name() + "'");
 				}
+			} else {
+				return null; // Ignore Belt and Ring
 			}
 			result.setSurfaceTemperature(eddbBody.getSurface_temperature());
 			result.setAge(eddbBody.getAge());
