@@ -382,11 +382,9 @@ public class EddbReader {
 						writeBatch.add(body);
 					}
 				}
-			} else {//if (!eddbBody.getId().equals(body.getEddbId())) { // FIXME
+			} else if (!eddbBody.getId().equals(body.getEddbId())) {
 				body.setEddbId(eddbBody.getId());
 				body.setCreatedAt(eddbBody.getCreated_at());
-				Body fromEddbBody = this.eddbBodyToBody(eddbBody); // FIXME
-				body.setPlanetClass(fromEddbBody == null ? null : fromEddbBody.getPlanetClass()); // FIXME
 				if (body.getCoord() == null || body.getStarSystemName() == null) {
 					StarSystem starSystem = null;
 					try {
