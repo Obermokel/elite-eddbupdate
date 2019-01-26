@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import borg.ed.eddbupdate.eddb.EddbReader;
 import borg.ed.eddbupdate.eddndump.EddnDumpReader;
 import borg.ed.universe.UniverseApplication;
 
@@ -28,11 +27,6 @@ public class EddbUpdateApplication {
 	public static void main(String[] args) throws Exception {
 		//APPCTX.getBean(EddbReader.class).loadEddbDataIntoElasticsearch();
 		APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
-	}
-
-	@Bean
-	public EddbReader eddbReader() {
-		return new EddbReader();
 	}
 
 	@Bean
