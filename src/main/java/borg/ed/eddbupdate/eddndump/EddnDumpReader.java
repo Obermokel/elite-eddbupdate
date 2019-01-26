@@ -1,13 +1,5 @@
 package borg.ed.eddbupdate.eddndump;
 
-import borg.ed.universe.eddn.EddnElasticUpdater;
-import borg.ed.universe.journal.JournalEventReader;
-import borg.ed.universe.journal.events.AbstractJournalEvent;
-import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,8 +8,20 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.gson.Gson;
+
+import borg.ed.universe.eddn.EddnElasticUpdater;
+import borg.ed.universe.journal.JournalEventReader;
+import borg.ed.universe.journal.events.AbstractJournalEvent;
 
 /**
  * EddnDumpReader
@@ -26,60 +30,95 @@ import java.util.Map;
  */
 public class EddnDumpReader {
 
-    static final Logger logger = LoggerFactory.getLogger(EddnDumpReader.class);
+	static final Logger logger = LoggerFactory.getLogger(EddnDumpReader.class);
 
-    private static final String SCHEMA_JOURNAL_v1 = "https://eddn.edcd.io/schemas/journal/1";
+	private static final String SCHEMA_JOURNAL_v1 = "https://eddn.edcd.io/schemas/journal/1";
+	private static final String SCHEMA_JOURNAL_v1_TEST = "https://eddn.edcd.io/schemas/journal/1/test";
+	private static final String SCHEMA_COMMODITY_v3 = "https://eddn.edcd.io/schemas/commodity/3";
+	private static final String SCHEMA_COMMODITY_v3_TEST = "https://eddn.edcd.io/schemas/commodity/3/test";
+	private static final String SCHEMA_BLACKMARKET_v1 = "https://eddn.edcd.io/schemas/blackmarket/1";
+	private static final String SCHEMA_SHIPYARD_v2 = "https://eddn.edcd.io/schemas/shipyard/2";
+	private static final String SCHEMA_SHIPYARD_v2_TEST = "https://eddn.edcd.io/schemas/shipyard/2/test";
+	private static final String SCHEMA_OUTFITTING_v2 = "https://eddn.edcd.io/schemas/outfitting/2";
+	private static final String SCHEMA_OUTFITTING_v2_TEST = "https://eddn.edcd.io/schemas/outfitting/2/test";
 
-    private final Gson gson = new Gson();
+	private final Gson gson = new Gson();
 
-    @Autowired
-    private JournalEventReader journalEventReader = null;
+	@Autowired
+	private JournalEventReader journalEventReader = null;
 
-    @Autowired
-    private EddnElasticUpdater eddnElasticUpdater = null;
+	@Autowired
+	private EddnElasticUpdater eddnElasticUpdater = null;
 
-    public void loadEddnDumpsIntoElasticsearch() {
-        File eddnDumpDir = new File(System.getProperty("user.home"), "eddndump");
-        if (eddnDumpDir.exists() && eddnDumpDir.isDirectory()) {
-            File[] dumpFiles = eddnDumpDir.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().startsWith("eddndump") && file.getName().endsWith(".txt");
-                }
-            });
-            for (File dumpFile : dumpFiles) {
-                try {
-                    readDumpFile(dumpFile);
-                } catch (IOException e) {
-                    logger.error("Failed to read " + dumpFile, e);
-                }
-            }
-        }
-    }
+	public void loadEddnDumpsIntoElasticsearch() {
+		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
+		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
+		this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
+	}
 
-    private void readDumpFile(File dumpFile) throws IOException {
-        logger.info("Reading " + dumpFile + "...");
+	private void readDumpsFromDir(File eddnDumpDir) {
+		if (eddnDumpDir.exists() && eddnDumpDir.isDirectory()) {
+			File[] dumpFiles = eddnDumpDir.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(File file) {
+					return file.getName().startsWith("eddndump") && file.getName().endsWith(".txt");
+				}
+			});
+			Arrays.sort(dumpFiles, new Comparator<File>() {
+				@Override
+				public int compare(File f1, File f2) {
+					return f1.getName().compareTo(f2.getName());
+				}
+			});
+			for (File dumpFile : dumpFiles) {
+				try {
+					readDumpFile(dumpFile);
+				} catch (IOException e) {
+					logger.error("Failed to read " + dumpFile, e);
+				}
+			}
+		}
+	}
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(dumpFile)), "UTF-8"))) {
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                LinkedHashMap<String, Object> data = this.gson.fromJson(line, LinkedHashMap.class);
-                String schemaRef = (String) data.get("$schemaRef");
+	private void readDumpFile(File dumpFile) throws IOException {
+		logger.info("Reading " + dumpFile + "...");
 
-                if (SCHEMA_JOURNAL_v1.equals(schemaRef)) {
-                    Map<String, Object> header = (Map<String, Object>) data.get("header");
-                    ZonedDateTime gatewayTimestamp = ZonedDateTime.parse((String) header.get("gatewayTimestamp"));
-                    String uploaderID = (String) header.get("uploaderID");
-                    Map<String, Object> message = (Map<String, Object>) data.get("message");
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(dumpFile)), "UTF-8"))) {
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				LinkedHashMap<String, Object> data = this.gson.fromJson(line, LinkedHashMap.class);
+				String schemaRef = (String) data.get("$schemaRef");
 
-                    AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message));
+				if (SCHEMA_JOURNAL_v1.equals(schemaRef)) {
+					Map<String, Object> header = (Map<String, Object>) data.get("header");
+					ZonedDateTime gatewayTimestamp = ZonedDateTime.parse((String) header.get("gatewayTimestamp"));
+					String uploaderID = (String) header.get("uploaderID");
+					Map<String, Object> message = (Map<String, Object>) data.get("message");
 
-                    this.eddnElasticUpdater.onNewJournalMessage(gatewayTimestamp, uploaderID, journalEvent);
-                } else {
-                    //logger.warn("Unknown schemaRef: " + schemaRef);
-                }
-            }
-        }
-    }
+					AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message));
+
+					this.eddnElasticUpdater.onNewJournalMessage(gatewayTimestamp, uploaderID, journalEvent);
+				} else if (SCHEMA_JOURNAL_v1_TEST.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_COMMODITY_v3.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_COMMODITY_v3_TEST.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_BLACKMARKET_v1.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_SHIPYARD_v2.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_SHIPYARD_v2_TEST.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_OUTFITTING_v2.equals(schemaRef)) {
+					// NOOP
+				} else if (SCHEMA_OUTFITTING_v2_TEST.equals(schemaRef)) {
+					// NOOP
+				} else {
+					logger.warn("Unknown schemaRef: " + schemaRef);
+				}
+			}
+		}
+	}
 
 }
