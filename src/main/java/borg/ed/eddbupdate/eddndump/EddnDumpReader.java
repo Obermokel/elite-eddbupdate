@@ -51,6 +51,8 @@ public class EddnDumpReader {
 	private EddnElasticUpdater eddnElasticUpdater = null;
 
 	public void loadEddnDumpsIntoElasticsearch() {
+		this.eddnElasticUpdater.setUpdateMinorFactions(false);
+
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
 		this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
