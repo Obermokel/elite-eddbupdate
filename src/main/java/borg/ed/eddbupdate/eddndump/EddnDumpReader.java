@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import borg.ed.universe.eddn.EddnElasticUpdater;
 import borg.ed.universe.journal.JournalEventReader;
@@ -48,9 +49,14 @@ public class EddnDumpReader {
 	private JournalEventReader journalEventReader = null;
 
 	@Autowired
+	private EddnBufferThread eddnBufferThread = null;
+
+	@Autowired
 	private EddnElasticUpdater eddnElasticUpdater = null;
 
 	public void loadEddnDumpsIntoElasticsearch() {
+		this.eddnBufferThread.start();
+
 		this.eddnElasticUpdater.setUpdateMinorFactions(false);
 
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
@@ -88,36 +94,40 @@ public class EddnDumpReader {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(dumpFile)), "UTF-8"))) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
-				LinkedHashMap<String, Object> data = this.gson.fromJson(line, LinkedHashMap.class);
-				String schemaRef = (String) data.get("$schemaRef");
+				try {
+					LinkedHashMap<String, Object> data = this.gson.fromJson(line, LinkedHashMap.class);
+					String schemaRef = (String) data.get("$schemaRef");
 
-				if (SCHEMA_JOURNAL_v1.equals(schemaRef)) {
-					Map<String, Object> header = (Map<String, Object>) data.get("header");
-					ZonedDateTime gatewayTimestamp = ZonedDateTime.parse((String) header.get("gatewayTimestamp"));
-					String uploaderID = (String) header.get("uploaderID");
-					Map<String, Object> message = (Map<String, Object>) data.get("message");
+					if (SCHEMA_JOURNAL_v1.equals(schemaRef)) {
+						Map<String, Object> header = (Map<String, Object>) data.get("header");
+						ZonedDateTime gatewayTimestamp = ZonedDateTime.parse((String) header.get("gatewayTimestamp"));
+						String uploaderID = (String) header.get("uploaderID");
+						Map<String, Object> message = (Map<String, Object>) data.get("message");
 
-					AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message));
+						AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message));
 
-					this.eddnElasticUpdater.onNewJournalMessage(gatewayTimestamp, uploaderID, journalEvent);
-				} else if (SCHEMA_JOURNAL_v1_TEST.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_COMMODITY_v3.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_COMMODITY_v3_TEST.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_BLACKMARKET_v1.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_SHIPYARD_v2.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_SHIPYARD_v2_TEST.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_OUTFITTING_v2.equals(schemaRef)) {
-					// NOOP
-				} else if (SCHEMA_OUTFITTING_v2_TEST.equals(schemaRef)) {
-					// NOOP
-				} else {
-					logger.warn("Unknown schemaRef: " + schemaRef);
+						this.eddnBufferThread.buffer(gatewayTimestamp, uploaderID, journalEvent);
+					} else if (SCHEMA_JOURNAL_v1_TEST.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_COMMODITY_v3.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_COMMODITY_v3_TEST.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_BLACKMARKET_v1.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_SHIPYARD_v2.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_SHIPYARD_v2_TEST.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_OUTFITTING_v2.equals(schemaRef)) {
+						// NOOP
+					} else if (SCHEMA_OUTFITTING_v2_TEST.equals(schemaRef)) {
+						// NOOP
+					} else {
+						logger.warn("Unknown schemaRef: " + schemaRef);
+					}
+				} catch (JsonSyntaxException | NullPointerException e) {
+					logger.error("Failed to parse line '" + line + "'", e);
 				}
 			}
 		}

@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import borg.ed.eddbupdate.eddndump.EddnBufferThread;
 import borg.ed.eddbupdate.eddndump.EddnDumpReader;
 import borg.ed.universe.UniverseApplication;
 
@@ -32,6 +33,11 @@ public class EddbUpdateApplication {
 	@Bean
 	public EddnDumpReader eddnDumpReader() {
 		return new EddnDumpReader();
+	}
+
+	@Bean
+	public EddnBufferThread eddnBufferThread() {
+		return new EddnBufferThread();
 	}
 
 }
