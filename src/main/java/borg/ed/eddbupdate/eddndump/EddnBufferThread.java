@@ -1,7 +1,9 @@
 package borg.ed.eddbupdate.eddndump;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import borg.ed.universe.eddn.EddnElasticUpdater;
 import borg.ed.universe.journal.events.AbstractJournalEvent;
+import borg.ed.universe.model.StarSystem;
+import borg.ed.universe.repository.StarSystemRepository;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,7 +25,12 @@ public class EddnBufferThread extends Thread {
 	@Autowired
 	private EddnElasticUpdater eddnElasticUpdater = null;
 
+	@Autowired
+	private StarSystemRepository starSystemRepository = null;
+
 	private LinkedList<BufferedEvent> buffer = new LinkedList<>();
+
+	private LinkedList<StarSystem> starSystemBuffer = new LinkedList<>();
 
 	public EddnBufferThread() {
 		this.setName("EddnBufferThread");
@@ -52,6 +61,18 @@ public class EddnBufferThread extends Thread {
 					}
 					this.eddnElasticUpdater.onNewJournalMessage(el.getGatewayTimestamp(), el.getUploaderID(), el.getJournalEvent());
 				}
+
+				if (this.starSystemBuffer.isEmpty()) {
+					Thread.sleep(1);
+				} else {
+					List<StarSystem> starSystems = null;
+					synchronized (this.starSystemBuffer) {
+						starSystems = new ArrayList<>(this.starSystemBuffer);
+						this.starSystemBuffer.clear();
+						this.starSystemBuffer.notifyAll();
+					}
+					this.starSystemRepository.saveAll(starSystems);
+				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
@@ -66,6 +87,19 @@ public class EddnBufferThread extends Thread {
 				//logger.debug("Buffer ready");
 			}
 			this.buffer.addLast(new BufferedEvent(gatewayTimestamp, uploaderID, journalEvent));
+			this.buffer.notifyAll();
+		}
+	}
+
+	public void bufferStarSystem(StarSystem starSystem) throws InterruptedException {
+		synchronized (this.starSystemBuffer) {
+			if (this.starSystemBuffer.size() >= 1000) {
+				//logger.debug("StarSystem buffer full");
+				this.starSystemBuffer.wait();
+				//logger.debug("StarSystem buffer ready");
+			}
+			this.starSystemBuffer.addLast(starSystem);
+			this.starSystemBuffer.notifyAll();
 		}
 	}
 
