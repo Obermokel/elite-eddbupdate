@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.universe.eddn.EddnElasticUpdater;
 import borg.ed.universe.journal.JournalEventReader;
 import borg.ed.universe.journal.events.AbstractJournalEvent;
 
@@ -51,20 +50,13 @@ public class EddnDumpReader {
 	@Autowired
 	private EddnBufferThread eddnBufferThread = null;
 
-	@Autowired
-	private EddnElasticUpdater eddnElasticUpdater = null;
-
-	public void loadEddnDumpsIntoElasticsearch() {
-		this.eddnBufferThread.start();
-
-		this.eddnElasticUpdater.setUpdateMinorFactions(false);
-
+	public void loadEddnDumpsIntoElasticsearch() throws InterruptedException {
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
 		this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
 	}
 
-	private void readDumpsFromDir(File eddnDumpDir) {
+	private void readDumpsFromDir(File eddnDumpDir) throws InterruptedException {
 		if (eddnDumpDir.exists() && eddnDumpDir.isDirectory()) {
 			File[] dumpFiles = eddnDumpDir.listFiles(new FileFilter() {
 				@Override
@@ -88,7 +80,7 @@ public class EddnDumpReader {
 		}
 	}
 
-	private void readDumpFile(File dumpFile) throws IOException {
+	private void readDumpFile(File dumpFile) throws IOException, InterruptedException {
 		logger.info("Reading " + dumpFile + "...");
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(dumpFile)), "UTF-8"))) {

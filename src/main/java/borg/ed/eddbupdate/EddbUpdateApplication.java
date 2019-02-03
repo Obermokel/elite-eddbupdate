@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import borg.ed.eddbupdate.eddndump.EddnBufferThread;
 import borg.ed.eddbupdate.eddndump.EddnDumpReader;
+import borg.ed.eddbupdate.edsm.EdsmSystemsReader;
 import borg.ed.universe.UniverseApplication;
+import borg.ed.universe.eddn.EddnElasticUpdater;
 
 /**
  * EddbUpdateApplication
@@ -26,18 +28,29 @@ public class EddbUpdateApplication {
 	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(EddbUpdateApplication.class);
 
 	public static void main(String[] args) throws Exception {
-		//APPCTX.getBean(EddbReader.class).loadEddbDataIntoElasticsearch();
-		APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
-	}
+		EddnBufferThread bufferThread = APPCTX.getBean(EddnBufferThread.class);
+		bufferThread.start();
 
-	@Bean
-	public EddnDumpReader eddnDumpReader() {
-		return new EddnDumpReader();
+		EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
+		eddnElasticUpdater.setUpdateMinorFactions(false);
+
+		APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
+		//APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
 	}
 
 	@Bean
 	public EddnBufferThread eddnBufferThread() {
 		return new EddnBufferThread();
+	}
+
+	@Bean
+	public EdsmSystemsReader edsmSystemsReader() {
+		return new EdsmSystemsReader();
+	}
+
+	@Bean
+	public EddnDumpReader eddnDumpReader() {
+		return new EddnDumpReader();
 	}
 
 }

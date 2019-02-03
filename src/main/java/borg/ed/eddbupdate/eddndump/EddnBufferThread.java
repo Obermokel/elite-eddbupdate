@@ -46,6 +46,9 @@ public class EddnBufferThread extends Thread {
 					BufferedEvent el = null;
 					synchronized (this.buffer) {
 						el = this.buffer.removeFirst();
+						if (this.buffer.size() >= 10) {
+							this.buffer.notifyAll();
+						}
 					}
 					this.eddnElasticUpdater.onNewJournalMessage(el.getGatewayTimestamp(), el.getUploaderID(), el.getJournalEvent());
 				}
@@ -55,25 +58,14 @@ public class EddnBufferThread extends Thread {
 		}
 	}
 
-	public void buffer(ZonedDateTime gatewayTimestamp, String uploaderID, AbstractJournalEvent journalEvent) {
-		if (this.buffer.size() >= 1000) {
-			logger.debug("Buffer full");
-			while (this.buffer.size() >= 10) {
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					break;
-				}
+	public void buffer(ZonedDateTime gatewayTimestamp, String uploaderID, AbstractJournalEvent journalEvent) throws InterruptedException {
+		synchronized (this.buffer) {
+			if (this.buffer.size() >= 1000) {
+				//logger.debug("Buffer full");
+				this.buffer.wait();
+				//logger.debug("Buffer ready");
 			}
-			if (this.buffer.size() < 10) {
-				logger.debug("Buffer ready");
-			}
-		}
-		if (this.buffer.size() < 10) {
-			synchronized (this.buffer) {
-				this.buffer.addLast(new BufferedEvent(gatewayTimestamp, uploaderID, journalEvent));
-			}
+			this.buffer.addLast(new BufferedEvent(gatewayTimestamp, uploaderID, journalEvent));
 		}
 	}
 
