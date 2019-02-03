@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Import;
 
 import borg.ed.eddbupdate.eddndump.EddnBufferThread;
 import borg.ed.eddbupdate.eddndump.EddnDumpReader;
+import borg.ed.eddbupdate.edsm.EdsmBodiesReader;
 import borg.ed.eddbupdate.edsm.EdsmSystemsReader;
 import borg.ed.universe.UniverseApplication;
 import borg.ed.universe.eddn.EddnElasticUpdater;
@@ -34,7 +35,8 @@ public class EddbUpdateApplication {
 		EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
 		eddnElasticUpdater.setUpdateMinorFactions(false);
 
-		APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
+		//APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
+		APPCTX.getBean(EdsmBodiesReader.class).loadEdsmDumpIntoElasticsearch();
 		//APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
 	}
 
@@ -46,6 +48,11 @@ public class EddbUpdateApplication {
 	@Bean
 	public EdsmSystemsReader edsmSystemsReader() {
 		return new EdsmSystemsReader();
+	}
+
+	@Bean
+	public EdsmBodiesReader edsmBodiesReader() {
+		return new EdsmBodiesReader();
 	}
 
 	@Bean

@@ -55,6 +55,9 @@ public class EdsmSystemsReader {
 					}
 
 					line = line.trim();
+					if (line.length() <= 1) {
+						continue;
+					}
 					if (line.endsWith(",")) {
 						line = line.substring(0, line.length() - 1);
 					}

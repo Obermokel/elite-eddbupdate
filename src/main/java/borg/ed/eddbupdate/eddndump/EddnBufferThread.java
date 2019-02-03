@@ -11,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import borg.ed.universe.eddn.EddnElasticUpdater;
 import borg.ed.universe.journal.events.AbstractJournalEvent;
+import borg.ed.universe.model.Body;
 import borg.ed.universe.model.StarSystem;
+import borg.ed.universe.repository.BodyRepository;
 import borg.ed.universe.repository.StarSystemRepository;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,9 +30,14 @@ public class EddnBufferThread extends Thread {
 	@Autowired
 	private StarSystemRepository starSystemRepository = null;
 
+	@Autowired
+	private BodyRepository bodyRepository = null;
+
 	private LinkedList<BufferedEvent> buffer = new LinkedList<>();
 
 	private LinkedList<StarSystem> starSystemBuffer = new LinkedList<>();
+
+	private LinkedList<Body> bodyBuffer = new LinkedList<>();
 
 	public EddnBufferThread() {
 		this.setName("EddnBufferThread");
@@ -73,6 +80,18 @@ public class EddnBufferThread extends Thread {
 					}
 					this.starSystemRepository.saveAll(starSystems);
 				}
+
+				if (this.bodyBuffer.isEmpty()) {
+					Thread.sleep(1);
+				} else {
+					List<Body> bodies = null;
+					synchronized (this.bodyBuffer) {
+						bodies = new ArrayList<>(this.bodyBuffer);
+						this.bodyBuffer.clear();
+						this.bodyBuffer.notifyAll();
+					}
+					this.bodyRepository.saveAll(bodies);
+				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
@@ -100,6 +119,18 @@ public class EddnBufferThread extends Thread {
 			}
 			this.starSystemBuffer.addLast(starSystem);
 			this.starSystemBuffer.notifyAll();
+		}
+	}
+
+	public void bufferBody(Body body) throws InterruptedException {
+		synchronized (this.bodyBuffer) {
+			if (this.bodyBuffer.size() >= 1000) {
+				//logger.debug("Body buffer full");
+				this.bodyBuffer.wait();
+				//logger.debug("Body buffer ready");
+			}
+			this.bodyBuffer.addLast(body);
+			this.bodyBuffer.notifyAll();
 		}
 	}
 
