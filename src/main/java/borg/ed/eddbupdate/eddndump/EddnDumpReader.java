@@ -128,8 +128,6 @@ public class EddnDumpReader {
 						} else {
 							logger.warn("Unknown journal event: " + journalEvent);
 						}
-
-						//this.eddnBufferThread.buffer(gatewayTimestamp, uploaderID, journalEvent);
 					} else if (SCHEMA_JOURNAL_v1_TEST.equals(schemaRef)) {
 						// NOOP
 					} else if (SCHEMA_COMMODITY_v3.equals(schemaRef)) {
@@ -170,6 +168,7 @@ public class EddnDumpReader {
 		body.setUpdatedAt(Date.from(event.getTimestamp().toInstant()));
 
 		try {
+			// Make sure the star system exists, and no duplicates are found
 			StarSystem starSystem = this.universeService.findStarSystemByName(body.getStarSystemName());
 
 			if (starSystem != null) {
