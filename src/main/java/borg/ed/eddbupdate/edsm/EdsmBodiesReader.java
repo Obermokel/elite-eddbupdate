@@ -76,9 +76,6 @@ public class EdsmBodiesReader {
 					if (lineNumber % 100_000 == 0) {
 						logger.debug("Line " + lineNumber);
 					}
-					//					if (lineNumber <= 14_200_000) {
-					//						continue;
-					//					}
 
 					line = line.trim();
 					if (line.length() <= 1) {
@@ -209,9 +206,8 @@ public class EdsmBodiesReader {
 				} catch (JsonSyntaxException | ParseException | NullPointerException e) {
 					logger.error("Failed to parse line '" + line + "'", e);
 				} catch (NonUniqueResultException e) {
-					//logger.error("Duplicate star system. Others: " + e.getOthers());
+					logger.warn("Duplicate star system. Will delete all of them: " + e.getOthers());
 					for (String id : e.getOtherIds()) {
-						//logger.warn("Deleting duplicate: " + id);
 						this.starSystemRepository.deleteById(id);
 					}
 				}

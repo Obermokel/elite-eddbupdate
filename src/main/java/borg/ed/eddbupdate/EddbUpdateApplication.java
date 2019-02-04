@@ -35,9 +35,9 @@ public class EddbUpdateApplication {
 		EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
 		eddnElasticUpdater.setUpdateMinorFactions(false);
 
-		APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
-		APPCTX.getBean(EdsmBodiesReader.class).loadEdsmDumpIntoElasticsearch();
-		//APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
+		//APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
+		//APPCTX.getBean(EdsmBodiesReader.class).loadEdsmDumpIntoElasticsearch();
+		APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
 
 		Thread.sleep(60_000);
 	}

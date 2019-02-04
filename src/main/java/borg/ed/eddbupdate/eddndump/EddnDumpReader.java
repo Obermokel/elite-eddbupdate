@@ -7,9 +7,9 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -20,8 +20,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import borg.ed.universe.converter.JournalConverter;
+import borg.ed.universe.exceptions.NonUniqueResultException;
 import borg.ed.universe.journal.JournalEventReader;
 import borg.ed.universe.journal.events.AbstractJournalEvent;
+import borg.ed.universe.journal.events.AbstractSystemJournalEvent;
+import borg.ed.universe.journal.events.DockedEvent;
+import borg.ed.universe.journal.events.ScanEvent;
+import borg.ed.universe.model.Body;
+import borg.ed.universe.model.StarSystem;
+import borg.ed.universe.repository.BodyRepository;
+import borg.ed.universe.repository.StarSystemRepository;
+import borg.ed.universe.service.UniverseService;
 
 /**
  * EddnDumpReader
@@ -48,12 +58,25 @@ public class EddnDumpReader {
 	private JournalEventReader journalEventReader = null;
 
 	@Autowired
+	private JournalConverter journalConverter = null;
+
+	@Autowired
+	private StarSystemRepository starSystemRepository = null;
+
+	@Autowired
+	private BodyRepository bodyRepository = null;
+
+	@Autowired
+	private UniverseService universeService = null;
+
+	@Autowired
 	private EddnBufferThread eddnBufferThread = null;
 
 	public void loadEddnDumpsIntoElasticsearch() throws InterruptedException {
-		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
-		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
-		this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
+		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
+		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
+		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3_03"));
+		//this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
 	}
 
 	private void readDumpsFromDir(File eddnDumpDir) throws InterruptedException {
@@ -80,6 +103,7 @@ public class EddnDumpReader {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void readDumpFile(File dumpFile) throws IOException, InterruptedException {
 		logger.info("Reading " + dumpFile + "...");
 
@@ -91,14 +115,21 @@ public class EddnDumpReader {
 					String schemaRef = (String) data.get("$schemaRef");
 
 					if (SCHEMA_JOURNAL_v1.equals(schemaRef)) {
-						Map<String, Object> header = (Map<String, Object>) data.get("header");
-						ZonedDateTime gatewayTimestamp = ZonedDateTime.parse((String) header.get("gatewayTimestamp"));
-						String uploaderID = (String) header.get("uploaderID");
 						Map<String, Object> message = (Map<String, Object>) data.get("message");
 
 						AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message));
 
-						this.eddnBufferThread.buffer(gatewayTimestamp, uploaderID, journalEvent);
+						if (journalEvent instanceof AbstractSystemJournalEvent) {
+							this.handleAbstractSystemJournalEvent((AbstractSystemJournalEvent) journalEvent);
+						} else if (journalEvent instanceof ScanEvent) {
+							this.handleScanEvent((ScanEvent) journalEvent);
+						} else if (journalEvent instanceof DockedEvent) {
+							this.handleDockedEvent((DockedEvent) journalEvent);
+						} else {
+							logger.warn("Unknown journal event: " + journalEvent);
+						}
+
+						//this.eddnBufferThread.buffer(gatewayTimestamp, uploaderID, journalEvent);
 					} else if (SCHEMA_JOURNAL_v1_TEST.equals(schemaRef)) {
 						// NOOP
 					} else if (SCHEMA_COMMODITY_v3.equals(schemaRef)) {
@@ -123,6 +154,41 @@ public class EddnDumpReader {
 				}
 			}
 		}
+	}
+
+	private void handleAbstractSystemJournalEvent(AbstractSystemJournalEvent event) throws InterruptedException {
+		StarSystem starSystem = this.journalConverter.abstractSystemJournalEventToStarSystem(event);
+
+		starSystem.setUpdatedAt(Date.from(event.getTimestamp().toInstant()));
+
+		this.eddnBufferThread.bufferStarSystem(starSystem);
+	}
+
+	private void handleScanEvent(ScanEvent event) throws InterruptedException {
+		Body body = this.journalConverter.scanEventToBody(event);
+
+		body.setUpdatedAt(Date.from(event.getTimestamp().toInstant()));
+
+		try {
+			StarSystem starSystem = this.universeService.findStarSystemByName(body.getStarSystemName());
+
+			if (starSystem != null) {
+				// Only update with pre-3.3 scan events, detailed scan events, or if the body does not yet exist
+				if (event.getScanType() == null || ScanEvent.SCAN_TYPE_DETAILED.equals(event.getScanType()) || ScanEvent.SCAN_TYPE_NAV_BEACON_DETAIL.equals(event.getScanType())
+						|| this.bodyRepository.findById(body.getId()) == null) {
+					this.eddnBufferThread.bufferBody(body);
+				}
+			}
+		} catch (NonUniqueResultException e) {
+			logger.warn("Duplicate star system '" + body.getStarSystemName() + "'. Will delete all of them: " + e.getOthers());
+			for (String id : e.getOtherIds()) {
+				this.starSystemRepository.deleteById(id);
+			}
+		}
+	}
+
+	private void handleDockedEvent(DockedEvent event) {
+		// TODO
 	}
 
 }
