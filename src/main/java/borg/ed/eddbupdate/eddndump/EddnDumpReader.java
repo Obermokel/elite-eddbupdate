@@ -11,8 +11,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import borg.ed.universe.converter.JournalConverter;
-import borg.ed.universe.exceptions.NonUniqueResultException;
 import borg.ed.universe.journal.JournalEventReader;
 import borg.ed.universe.journal.events.AbstractJournalEvent;
 import borg.ed.universe.journal.events.AbstractSystemJournalEvent;
@@ -29,9 +30,6 @@ import borg.ed.universe.journal.events.DockedEvent;
 import borg.ed.universe.journal.events.ScanEvent;
 import borg.ed.universe.model.Body;
 import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.repository.BodyRepository;
-import borg.ed.universe.repository.StarSystemRepository;
-import borg.ed.universe.service.UniverseService;
 
 /**
  * EddnDumpReader
@@ -61,22 +59,13 @@ public class EddnDumpReader {
 	private JournalConverter journalConverter = null;
 
 	@Autowired
-	private StarSystemRepository starSystemRepository = null;
-
-	@Autowired
-	private BodyRepository bodyRepository = null;
-
-	@Autowired
-	private UniverseService universeService = null;
-
-	@Autowired
 	private EddnBufferThread eddnBufferThread = null;
 
 	public void loadEddnDumpsIntoElasticsearch() throws InterruptedException {
 		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
-		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
+		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3_03"));
-		//this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
+		this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
 	}
 
 	private void readDumpsFromDir(File eddnDumpDir) throws InterruptedException {
@@ -107,17 +96,26 @@ public class EddnDumpReader {
 	private void readDumpFile(File dumpFile) throws IOException, InterruptedException {
 		logger.info("Reading " + dumpFile + "...");
 
+		int lineNumber = 0;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(dumpFile)), "UTF-8"))) {
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				try {
+					lineNumber++;
+					if (lineNumber % 100_000 == 0) {
+						logger.debug(String.format(Locale.US, "Line %,d", lineNumber));
+					}
+
 					LinkedHashMap<String, Object> data = this.gson.fromJson(line, LinkedHashMap.class);
 					String schemaRef = (String) data.get("$schemaRef");
 
 					if (SCHEMA_JOURNAL_v1.equals(schemaRef)) {
 						Map<String, Object> message = (Map<String, Object>) data.get("message");
+						String event = (String) message.get("event");
+						String messageLine = line.substring(line.indexOf("\"message\":") + "\"message\":".length(), line.length() - 1);
 
-						AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message));
+						//AbstractJournalEvent journalEvent = this.journalEventReader.readLine(this.gson.toJson(message), event);
+						AbstractJournalEvent journalEvent = this.journalEventReader.readLine(messageLine, event);
 
 						if (journalEvent instanceof AbstractSystemJournalEvent) {
 							this.handleAbstractSystemJournalEvent((AbstractSystemJournalEvent) journalEvent);
@@ -167,27 +165,26 @@ public class EddnDumpReader {
 
 		body.setUpdatedAt(Date.from(event.getTimestamp().toInstant()));
 
-		try {
-			// Make sure the star system exists, and no duplicates are found
-			StarSystem starSystem = this.universeService.findStarSystemByName(body.getStarSystemName());
-
-			if (starSystem != null) {
-				// Only update with pre-3.3 scan events, detailed scan events, or if the body does not yet exist
-				if (event.getScanType() == null || ScanEvent.SCAN_TYPE_DETAILED.equals(event.getScanType()) || ScanEvent.SCAN_TYPE_NAV_BEACON_DETAIL.equals(event.getScanType())
-						|| this.bodyRepository.findById(body.getId()) == null) {
-					this.eddnBufferThread.bufferBody(body);
-				}
-			}
-		} catch (NonUniqueResultException e) {
-			logger.warn("Duplicate star system '" + body.getStarSystemName() + "'. Will delete all of them: " + e.getOthers());
-			for (String id : e.getOtherIds()) {
-				this.starSystemRepository.deleteById(id);
-			}
+		// Only update with detailed scan events
+		if (this.isDetailedScan(event)) {
+			this.eddnBufferThread.bufferBody(body);
 		}
 	}
 
 	private void handleDockedEvent(DockedEvent event) {
 		// TODO
+	}
+
+	private boolean isDetailedScan(ScanEvent event) {
+		if (event.getScanType() == null) {
+			return true; // Old event
+		} else if (ScanEvent.SCAN_TYPE_DETAILED.equals(event.getScanType()) || ScanEvent.SCAN_TYPE_NAV_BEACON_DETAIL.equals(event.getScanType())) {
+			return true; // Obviously detailed
+		} else if (ScanEvent.SCAN_TYPE_AUTO_SCAN.equals(event.getScanType())) {
+			return event.getSurfaceTemperature() != null || StringUtils.isNotEmpty(event.getStarType()); // According to the manual surface temp is only included in detailed scans
+		}
+
+		return false;
 	}
 
 }

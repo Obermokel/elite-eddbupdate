@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public class EdsmSystemsReader {
 				try {
 					lineNumber++;
 					if (lineNumber % 100_000 == 0) {
-						logger.debug("Line " + lineNumber);
+						logger.debug(String.format(Locale.US, "Line %,d", lineNumber));
 					}
 
 					line = line.trim();
