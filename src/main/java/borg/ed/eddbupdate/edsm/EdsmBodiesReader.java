@@ -38,6 +38,7 @@ import borg.ed.universe.model.Body.AtmosphereShare;
 import borg.ed.universe.model.Body.BodyShare;
 import borg.ed.universe.model.Body.MaterialShare;
 import borg.ed.universe.model.StarSystem;
+import borg.ed.universe.repository.StarSystemRepository;
 import borg.ed.universe.service.UniverseService;
 import borg.ed.universe.util.MiscUtil;
 
@@ -54,6 +55,9 @@ public class EdsmBodiesReader {
 	@Autowired
 	private EddnBufferThread eddnBufferThread = null;
 
+	@Autowired
+	private StarSystemRepository starSystemRepository = null;
+
 	@SuppressWarnings("unchecked")
 	public void loadEdsmDumpIntoElasticsearch() throws IOException, InterruptedException {
 		File dumpFile = new File("X:\\Spiele\\Elite Dangerous\\bodies.json");
@@ -68,6 +72,9 @@ public class EdsmBodiesReader {
 					lineNumber++;
 					if (lineNumber % 100_000 == 0) {
 						logger.debug("Line " + lineNumber);
+					}
+					if (lineNumber <= 14_200_000) {
+						continue;
 					}
 
 					line = line.trim();
@@ -142,10 +149,10 @@ public class EdsmBodiesReader {
 
 						switch (type) {
 						case "Star":
-							starClass = subTypeToStarClass(subType);
+							starClass = StarClass.fromJournalValue(subType);
 							break;
 						case "Planet":
-							planetClass = subTypeToPlanetClass(subType);
+							planetClass = PlanetClass.fromJournalValue(subType);
 							break;
 						default:
 							logger.warn("Unknown body type '" + type + "'");
@@ -195,7 +202,11 @@ public class EdsmBodiesReader {
 				} catch (JsonSyntaxException | ParseException | NullPointerException e) {
 					logger.error("Failed to parse line '" + line + "'", e);
 				} catch (NonUniqueResultException e) {
-					//logger.error("Failed to parse line '" + line + "': " + e);
+					//logger.error("Duplicate star system. Others: " + e.getOthers());
+					for (String id : e.getOtherIds()) {
+						//logger.warn("Deleting duplicate: " + id);
+						this.starSystemRepository.deleteById(id);
+					}
 				}
 			}
 		}
@@ -241,78 +252,6 @@ public class EdsmBodiesReader {
 			return result;
 		}
 		return null;
-	}
-
-	private StarClass subTypeToStarClass(String subType) {
-		switch (subType) {
-		case "O (Blue-White) Star":
-			return StarClass.O;
-		case "B (Blue-White) Star":
-			return StarClass.B;
-		case "A (Blue-White) Star":
-		case "A (Blue-White super giant) Star":
-			return StarClass.A;
-		case "F (White) Star":
-		case "F (White super giant) Star":
-			return StarClass.F;
-		case "G (White-Yellow) Star":
-		case "G (White-Yellow super giant) Star":
-			return StarClass.G;
-		case "K (Yellow-Orange) Star":
-		case "K (Yellow-Orange giant) Star":
-			return StarClass.K;
-		case "M (Red dwarf) Star":
-		case "M (Red giant) Star":
-		case "M (Red super giant) Star":
-			return StarClass.M;
-		case "L (Brown dwarf) Star":
-			return StarClass.L;
-		case "T (Brown dwarf) Star":
-			return StarClass.T;
-		case "T Tauri Star":
-			return StarClass.TTS;
-		case "Y (Brown dwarf) Star":
-			return StarClass.Y;
-		case "Herbig Ae/Be Star":
-			return StarClass.AEBE;
-		case "White Dwarf (DA) Star":
-			return StarClass.DA;
-		case "White Dwarf (DAB) Star":
-			return StarClass.DAB;
-		case "White Dwarf (DC) Star":
-			return StarClass.DC;
-		case "Neutron Star":
-			return StarClass.N;
-		case "Black Hole":
-			return StarClass.H;
-		case "Wolf-Rayet Star":
-			return StarClass.W;
-		case "Wolf-Rayet C Star":
-			return StarClass.WC;
-		case "Wolf-Rayet N Star":
-			return StarClass.WN;
-		case "Wolf-Rayet NC Star":
-			return StarClass.WNC;
-		case "Wolf-Rayet O Star":
-			return StarClass.WO;
-		case "C Star":
-			return StarClass.C;
-		case "S-type Star":
-			return StarClass.S;
-		case "MS-type Star":
-			return StarClass.MS;
-		default:
-			logger.warn("Unknown star subType '" + subType + "'");
-			return null;
-		}
-	}
-
-	private PlanetClass subTypeToPlanetClass(String subType) {
-		PlanetClass planetClass = PlanetClass.fromJournalValue(subType);
-		if (planetClass == null) {
-			logger.warn("Unknown planet subType '" + subType + "'");
-		}
-		return planetClass;
 	}
 
 }

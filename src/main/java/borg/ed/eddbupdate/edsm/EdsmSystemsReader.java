@@ -11,6 +11,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -42,7 +43,7 @@ public class EdsmSystemsReader {
 
 		logger.info("Reading " + dumpFile + "...");
 
-		//		Map<String, Coord> coordByMap = new HashMap<String, Coord>();
+		Map<String, String> systemsById = new HashMap<>();
 
 		int lineNumber = 0;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(dumpFile)), "UTF-8"))) {
@@ -75,28 +76,13 @@ public class EdsmSystemsReader {
 						logger.warn("Unknown attributes: " + data);
 					} else {
 						Coord coords = new Coord(MiscUtil.getAsFloat(coordsMap.get("x")), MiscUtil.getAsFloat(coordsMap.get("y")), MiscUtil.getAsFloat(coordsMap.get("z")));
-						//						ZonedDateTime date = ZonedDateTime.ofInstant(this.df.parse(dateString).toInstant(), ZoneId.of("Z"));
 						Date date = this.df.parse(dateString);
 
-						//						FSDJumpEvent fsdJumpEvent = new FSDJumpEvent();
-						//						fsdJumpEvent.setEvent("FSDJump");
-						//						fsdJumpEvent.setTimestamp(date);
-						//						fsdJumpEvent.setStarSystem(name);
-						//						fsdJumpEvent.setStarPos(coords);
-						//						fsdJumpEvent.setPopulation(BigDecimal.ZERO);
-						//						fsdJumpEvent.setSystemGovernment("None");
-						//						fsdJumpEvent.setSystemAllegiance("None");
-						//						fsdJumpEvent.setFactionState("None");
-						//						fsdJumpEvent.setSystemSecurity("Anarchy");
-						//						fsdJumpEvent.setSystemEconomy("None");
-						//
-						//						String md5 = StarSystem.generateId(coords);
-						//						Coord oldCoords = coordByMap.put(md5, coords);
-						//						if (oldCoords != null) {
-						//							logger.warn(md5 + ": " + name + " @ " + coords);
-						//						}
-						//
-						//						this.eddnBufferThread.buffer(date, null, fsdJumpEvent);
+						String md5 = StarSystem.generateId(coords);
+						String oldName = systemsById.put(md5, name);
+						if (oldName != null) {
+							logger.warn(md5 + ": '" + name + "' @ " + coords + " replaced '" + oldName + "'");
+						}
 
 						StarSystem starSystem = new StarSystem();
 						starSystem.setId(StarSystem.generateId(coords));

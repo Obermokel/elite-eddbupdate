@@ -38,6 +38,8 @@ public class EddbUpdateApplication {
 		//APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
 		APPCTX.getBean(EdsmBodiesReader.class).loadEdsmDumpIntoElasticsearch();
 		//APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
+
+		Thread.sleep(10000);
 	}
 
 	@Bean
