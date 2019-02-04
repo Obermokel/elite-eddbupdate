@@ -171,11 +171,11 @@ public class EdsmBodiesReader {
 						body.setStarSystemName(starSystem.getName());
 						body.setCoord(starSystem.getCoord());
 						body.setName(name);
-						body.setDistanceToArrival(distanceToArrival);
+						body.setDistanceToArrivalLs(distanceToArrival);
 						body.setStarClass(starClass);
 						body.setPlanetClass(planetClass);
-						body.setSurfaceTemperature(surfaceTemperature);
-						body.setAge(age);
+						body.setSurfaceTemperatureK(surfaceTemperature);
+						body.setAgeMY(age);
 						body.setSolarMasses(solarMasses);
 						body.setSolarRadius(solarRadius);
 						body.setIsMainStar(isMainStar);
@@ -187,8 +187,8 @@ public class EdsmBodiesReader {
 						body.setAtmosphereType(AtmosphereType.fromJournalValue(atmosphereType));
 						body.setTerraformingState(TerraformingState.fromJournalValue(terraformingState));
 						body.setEarthMasses(earthMasses);
-						body.setRadius(radius);
-						body.setGravity(gravity);
+						body.setRadiusKm(radius);
+						body.setGravityG(gravity);
 						body.setSurfacePressure(surfacePressure);
 						body.setOrbitalPeriod(orbitalPeriod);
 						body.setSemiMajorAxis(semiMajorAxis);
@@ -269,8 +269,8 @@ public class EdsmBodiesReader {
 				element.setName(MiscUtil.getAsString(data.remove("name")));
 				element.setRingClass(RingClass.fromJournalValue(MiscUtil.getAsString(data.remove("type"))));
 				element.setMassMT(MiscUtil.getAsBigDecimal(data.remove("mass")));
-				element.setInnerRadius(MiscUtil.getAsBigDecimal(data.remove("innerRadius")));
-				element.setOuterRadius(MiscUtil.getAsBigDecimal(data.remove("outerRadius")));
+				element.setInnerRadiusKm(MiscUtil.getAsBigDecimal(data.remove("innerRadius")));
+				element.setOuterRadiusKm(MiscUtil.getAsBigDecimal(data.remove("outerRadius")));
 				result.add(element);
 			}
 			return result;
