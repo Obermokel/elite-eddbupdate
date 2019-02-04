@@ -29,6 +29,8 @@ import borg.ed.universe.constants.BodyAtmosphere;
 import borg.ed.universe.constants.BodyComposition;
 import borg.ed.universe.constants.Element;
 import borg.ed.universe.constants.PlanetClass;
+import borg.ed.universe.constants.ReserveLevel;
+import borg.ed.universe.constants.RingClass;
 import borg.ed.universe.constants.StarClass;
 import borg.ed.universe.constants.TerraformingState;
 import borg.ed.universe.constants.VolcanismType;
@@ -37,6 +39,7 @@ import borg.ed.universe.model.Body;
 import borg.ed.universe.model.Body.AtmosphereShare;
 import borg.ed.universe.model.Body.BodyShare;
 import borg.ed.universe.model.Body.MaterialShare;
+import borg.ed.universe.model.Body.Ring;
 import borg.ed.universe.model.StarSystem;
 import borg.ed.universe.repository.StarSystemRepository;
 import borg.ed.universe.service.UniverseService;
@@ -73,9 +76,9 @@ public class EdsmBodiesReader {
 					if (lineNumber % 100_000 == 0) {
 						logger.debug("Line " + lineNumber);
 					}
-					if (lineNumber <= 14_200_000) {
-						continue;
-					}
+					//					if (lineNumber <= 14_200_000) {
+					//						continue;
+					//					}
 
 					line = line.trim();
 					if (line.length() <= 1) {
@@ -126,9 +129,9 @@ public class EdsmBodiesReader {
 					Map<String, Number> atmosphereCompositionMap = (Map<String, Number>) data.remove("atmosphereComposition");
 					Map<String, Number> solidCompositionMap = (Map<String, Number>) data.remove("solidComposition");
 					Map<String, Number> materialsMap = (Map<String, Number>) data.remove("materials");
-					data.remove("belts");
-					data.remove("rings"); // TODO
-					data.remove("reserveLevel"); // TODO
+					String reserveLevelString = MiscUtil.getAsString(data.remove("reserveLevel"));
+					List<Map<String, Object>> ringsList = (List<Map<String, Object>>) data.remove("rings");
+					data.remove("belts"); // TODO
 					data.remove("systemId");
 					data.remove("systemId64");
 
@@ -146,6 +149,8 @@ public class EdsmBodiesReader {
 						List<AtmosphereShare> atmosphereShares = toAtmosphereShares(atmosphereCompositionMap);
 						List<BodyShare> bodyShares = toBodyShares(solidCompositionMap);
 						List<MaterialShare> materialShares = toMaterialShares(materialsMap);
+						ReserveLevel reserveLevel = ReserveLevel.fromJournalValue(reserveLevelString);
+						List<Ring> rings = toRings(ringsList);
 
 						switch (type) {
 						case "Star":
@@ -197,6 +202,8 @@ public class EdsmBodiesReader {
 						body.setAtmosphereShares(atmosphereShares);
 						body.setBodyShares(bodyShares);
 						body.setMaterialShares(materialShares);
+						body.setReserves(reserveLevel);
+						body.setRings(rings);
 						this.eddnBufferThread.bufferBody(body);
 					}
 				} catch (JsonSyntaxException | ParseException | NullPointerException e) {
@@ -247,6 +254,23 @@ public class EdsmBodiesReader {
 				MaterialShare element = new MaterialShare();
 				element.setName(Element.fromJournalValue(name));
 				element.setPercent(MiscUtil.getAsBigDecimal(map.get(name)));
+				result.add(element);
+			}
+			return result;
+		}
+		return null;
+	}
+
+	private List<Ring> toRings(List<Map<String, Object>> list) {
+		if (list != null && !list.isEmpty()) {
+			List<Ring> result = new ArrayList<>(list.size());
+			for (Map<String, Object> data : list) {
+				Ring element = new Ring();
+				element.setName(MiscUtil.getAsString(data.remove("name")));
+				element.setRingClass(RingClass.fromJournalValue(MiscUtil.getAsString(data.remove("type"))));
+				element.setMassMT(MiscUtil.getAsBigDecimal(data.remove("mass")));
+				element.setInnerRadius(MiscUtil.getAsBigDecimal(data.remove("innerRadius")));
+				element.setOuterRadius(MiscUtil.getAsBigDecimal(data.remove("outerRadius")));
 				result.add(element);
 			}
 			return result;
