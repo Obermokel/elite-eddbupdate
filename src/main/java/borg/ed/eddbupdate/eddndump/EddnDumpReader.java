@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,25 +165,13 @@ public class EddnDumpReader {
 		body.setUpdatedAt(Date.from(event.getTimestamp().toInstant()));
 
 		// Only update with detailed scan events
-		if (this.isDetailedScan(event)) {
+		if (event.isDetailedScan()) {
 			this.eddnBufferThread.bufferBody(body);
 		}
 	}
 
 	private void handleDockedEvent(DockedEvent event) {
 		// TODO
-	}
-
-	private boolean isDetailedScan(ScanEvent event) {
-		if (event.getScanType() == null) {
-			return true; // Old event
-		} else if (ScanEvent.SCAN_TYPE_DETAILED.equals(event.getScanType()) || ScanEvent.SCAN_TYPE_NAV_BEACON_DETAIL.equals(event.getScanType())) {
-			return true; // Obviously detailed
-		} else if (ScanEvent.SCAN_TYPE_AUTO_SCAN.equals(event.getScanType())) {
-			return event.getSurfaceTemperature() != null || StringUtils.isNotEmpty(event.getStarType()); // According to the manual surface temp is only included in detailed scans
-		}
-
-		return false;
 	}
 
 }
