@@ -1,0 +1,33 @@
+{
+	"$schemaRef": "https://eddn.edcd.io/schemas/journal/1",
+	"header": {
+		"gatewayTimestamp": "2019-01-18T03:57:05.979020Z",
+		"softwareName": "E:D Market Connector [Windows]",
+		"softwareVersion": "3.3.6.0",
+		"uploaderID": "093cb8e47373ad9ed42148d1d66bebceb5182085"
+	},
+	"message": {
+		"AbsoluteMagnitude": 4.829987,
+		"Age_MY": 4792,
+		"AxialTilt": -0.219615,
+		"BodyID": 0,
+		"BodyName": "Sol",
+		"DistanceFromArrivalLS": 0.0,
+		"Luminosity": "V",
+		"Radius": 695499968.0,
+		"RotationPeriod": 223194.921875,
+		"ScanType": "Basic",
+		"StarPos": [
+			0.0,
+			0.0,
+			0.0
+		],
+		"StarSystem": "Sol",
+		"StarType": "G",
+		"StellarMass": 1.0,
+		"SurfaceTemperature": 5778.0,
+		"SystemAddress": 10477373803,
+		"event": "Scan",
+		"timestamp": "2019-01-18T03:57:04Z"
+	}
+}
