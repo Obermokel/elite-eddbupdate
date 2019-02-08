@@ -29,8 +29,8 @@ public class ElasticUpdateApplication {
 	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(ElasticUpdateApplication.class);
 
 	public static void main(String[] args) throws Exception {
-		ElasticBufferThread bufferThread = APPCTX.getBean(ElasticBufferThread.class);
-		bufferThread.start();
+		ElasticBufferThread elasticBufferThread = APPCTX.getBean(ElasticBufferThread.class);
+		elasticBufferThread.start();
 
 		EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
 		eddnElasticUpdater.setUpdateMinorFactions(false);
