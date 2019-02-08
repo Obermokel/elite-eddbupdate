@@ -129,7 +129,7 @@ public class EdsmBodiesReader {
 					Map<String, Number> materialsMap = (Map<String, Number>) data.remove("materials");
 					String reserveLevelString = MiscUtil.getAsString(data.remove("reserveLevel"));
 					List<Map<String, Object>> ringsList = (List<Map<String, Object>>) data.remove("rings");
-					data.remove("belts"); // TODO
+					data.remove("belts"); // Ignore
 					data.remove("systemId");
 					data.remove("systemId64");
 

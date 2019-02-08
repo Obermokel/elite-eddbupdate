@@ -171,7 +171,7 @@ public class EddnDumpReader {
 	}
 
 	private void handleDockedEvent(DockedEvent event) {
-		// TODO
+		// Do nothing
 	}
 
 }
