@@ -43,7 +43,7 @@ public class ElasticUpdateApplication {
 	}
 
 	@Bean
-	public ElasticBufferThread eddnBufferThread() {
+	public ElasticBufferThread elasticBufferThread() {
 		return new ElasticBufferThread();
 	}
 
