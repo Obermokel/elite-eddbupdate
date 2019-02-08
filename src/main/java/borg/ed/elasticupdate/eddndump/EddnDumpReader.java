@@ -21,8 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.elasticupdate.elastic.ElasticBufferThread;
 import borg.ed.galaxy.converter.JournalConverter;
+import borg.ed.galaxy.elastic.ElasticBufferThread;
 import borg.ed.galaxy.journal.JournalEventReader;
 import borg.ed.galaxy.journal.events.AbstractJournalEvent;
 import borg.ed.galaxy.journal.events.AbstractSystemJournalEvent;

@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Import;
 import borg.ed.elasticupdate.eddndump.EddnDumpReader;
 import borg.ed.elasticupdate.edsm.EdsmBodiesReader;
 import borg.ed.elasticupdate.edsm.EdsmSystemsReader;
-import borg.ed.elasticupdate.elastic.ElasticBufferThread;
 import borg.ed.galaxy.GalaxyApplication;
 import borg.ed.galaxy.eddn.EddnElasticUpdater;
+import borg.ed.galaxy.elastic.ElasticBufferThread;
 
 /**
  * ElasticUpdateApplication
@@ -40,11 +40,6 @@ public class ElasticUpdateApplication {
 		APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
 
 		Thread.sleep(60_000);
-	}
-
-	@Bean
-	public ElasticBufferThread elasticBufferThread() {
-		return new ElasticBufferThread();
 	}
 
 	@Bean

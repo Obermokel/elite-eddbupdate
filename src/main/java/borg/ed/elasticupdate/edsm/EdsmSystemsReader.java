@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.elasticupdate.elastic.ElasticBufferThread;
 import borg.ed.galaxy.data.Coord;
+import borg.ed.galaxy.elastic.ElasticBufferThread;
 import borg.ed.galaxy.model.StarSystem;
 import borg.ed.galaxy.util.MiscUtil;
 
