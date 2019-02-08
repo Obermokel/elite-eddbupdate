@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate;
+package borg.ed.elasticupdate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,25 +8,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
-import borg.ed.eddbupdate.eddndump.EddnDumpReader;
-import borg.ed.eddbupdate.edsm.EdsmBodiesReader;
-import borg.ed.eddbupdate.edsm.EdsmSystemsReader;
+import borg.ed.elasticupdate.eddndump.EddnDumpReader;
+import borg.ed.elasticupdate.edsm.EdsmBodiesReader;
+import borg.ed.elasticupdate.edsm.EdsmSystemsReader;
+import borg.ed.elasticupdate.elastic.ElasticBufferThread;
 import borg.ed.galaxy.GalaxyApplication;
 import borg.ed.galaxy.eddn.EddnElasticUpdater;
 
 /**
- * EddbUpdateApplication
+ * ElasticUpdateApplication
  *
  * @author <a href="mailto:b.guenther@xsite.de">Boris Guenther</a>
  */
 @Configuration
 @Import(GalaxyApplication.class)
-public class EddbUpdateApplication {
+public class ElasticUpdateApplication {
 
-	static final Logger logger = LoggerFactory.getLogger(EddbUpdateApplication.class);
+	static final Logger logger = LoggerFactory.getLogger(ElasticUpdateApplication.class);
 
-	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(EddbUpdateApplication.class);
+	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(ElasticUpdateApplication.class);
 
 	public static void main(String[] args) throws Exception {
 		ElasticBufferThread bufferThread = APPCTX.getBean(ElasticBufferThread.class);

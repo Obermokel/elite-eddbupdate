@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate.eddb;
+package borg.ed.elasticupdate.eddb;
 
 import java.math.BigDecimal;
 import java.util.Date;

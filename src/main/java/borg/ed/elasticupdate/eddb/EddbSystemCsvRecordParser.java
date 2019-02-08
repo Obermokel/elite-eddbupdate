@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate.eddb;
+package borg.ed.elasticupdate.eddb;
 
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;

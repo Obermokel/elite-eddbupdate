@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate.eddndump;
+package borg.ed.elasticupdate.eddndump;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import borg.ed.elasticupdate.elastic.ElasticBufferThread;
 import borg.ed.galaxy.converter.JournalConverter;
 import borg.ed.galaxy.journal.JournalEventReader;
 import borg.ed.galaxy.journal.events.AbstractJournalEvent;

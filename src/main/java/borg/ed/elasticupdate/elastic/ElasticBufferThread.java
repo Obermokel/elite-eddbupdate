@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate.eddndump;
+package borg.ed.elasticupdate.elastic;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

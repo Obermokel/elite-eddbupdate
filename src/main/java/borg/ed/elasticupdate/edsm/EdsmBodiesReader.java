@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate.edsm;
+package borg.ed.elasticupdate.edsm;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
+import borg.ed.elasticupdate.elastic.ElasticBufferThread;
 import borg.ed.galaxy.constants.AtmosphereType;
 import borg.ed.galaxy.constants.BodyAtmosphere;
 import borg.ed.galaxy.constants.BodyComposition;

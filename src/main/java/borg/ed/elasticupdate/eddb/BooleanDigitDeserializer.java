@@ -1,4 +1,4 @@
-package borg.ed.eddbupdate.eddb;
+package borg.ed.elasticupdate.eddb;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
