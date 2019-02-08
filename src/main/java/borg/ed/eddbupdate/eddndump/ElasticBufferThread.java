@@ -8,10 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import borg.ed.universe.model.Body;
-import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.repository.BodyRepository;
-import borg.ed.universe.repository.StarSystemRepository;
+import borg.ed.galaxy.model.Body;
+import borg.ed.galaxy.model.StarSystem;
+import borg.ed.galaxy.repository.BodyRepository;
+import borg.ed.galaxy.repository.StarSystemRepository;
 
 public class ElasticBufferThread extends Thread {
 

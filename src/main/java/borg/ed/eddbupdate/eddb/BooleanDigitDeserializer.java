@@ -1,11 +1,12 @@
 package borg.ed.eddbupdate.eddb;
 
-import borg.ed.universe.util.MiscUtil;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
+
+import borg.ed.galaxy.util.MiscUtil;
 
 import java.lang.reflect.Type;
 

@@ -24,9 +24,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
-import borg.ed.universe.data.Coord;
-import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.util.MiscUtil;
+import borg.ed.galaxy.data.Coord;
+import borg.ed.galaxy.model.StarSystem;
+import borg.ed.galaxy.util.MiscUtil;
 
 public class EdsmSystemsReader {
 

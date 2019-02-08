@@ -21,14 +21,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.universe.converter.JournalConverter;
-import borg.ed.universe.journal.JournalEventReader;
-import borg.ed.universe.journal.events.AbstractJournalEvent;
-import borg.ed.universe.journal.events.AbstractSystemJournalEvent;
-import borg.ed.universe.journal.events.DockedEvent;
-import borg.ed.universe.journal.events.ScanEvent;
-import borg.ed.universe.model.Body;
-import borg.ed.universe.model.StarSystem;
+import borg.ed.galaxy.converter.JournalConverter;
+import borg.ed.galaxy.journal.JournalEventReader;
+import borg.ed.galaxy.journal.events.AbstractJournalEvent;
+import borg.ed.galaxy.journal.events.AbstractSystemJournalEvent;
+import borg.ed.galaxy.journal.events.DockedEvent;
+import borg.ed.galaxy.journal.events.ScanEvent;
+import borg.ed.galaxy.model.Body;
+import borg.ed.galaxy.model.StarSystem;
 
 /**
  * EddnDumpReader

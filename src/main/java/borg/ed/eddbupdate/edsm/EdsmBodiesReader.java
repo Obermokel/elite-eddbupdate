@@ -25,26 +25,26 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
-import borg.ed.universe.constants.AtmosphereType;
-import borg.ed.universe.constants.BodyAtmosphere;
-import borg.ed.universe.constants.BodyComposition;
-import borg.ed.universe.constants.Element;
-import borg.ed.universe.constants.PlanetClass;
-import borg.ed.universe.constants.ReserveLevel;
-import borg.ed.universe.constants.RingClass;
-import borg.ed.universe.constants.StarClass;
-import borg.ed.universe.constants.TerraformingState;
-import borg.ed.universe.constants.VolcanismType;
-import borg.ed.universe.exceptions.NonUniqueResultException;
-import borg.ed.universe.model.Body;
-import borg.ed.universe.model.Body.AtmosphereShare;
-import borg.ed.universe.model.Body.BodyShare;
-import borg.ed.universe.model.Body.MaterialShare;
-import borg.ed.universe.model.Body.Ring;
-import borg.ed.universe.model.StarSystem;
-import borg.ed.universe.repository.StarSystemRepository;
-import borg.ed.universe.service.UniverseService;
-import borg.ed.universe.util.MiscUtil;
+import borg.ed.galaxy.constants.AtmosphereType;
+import borg.ed.galaxy.constants.BodyAtmosphere;
+import borg.ed.galaxy.constants.BodyComposition;
+import borg.ed.galaxy.constants.Element;
+import borg.ed.galaxy.constants.PlanetClass;
+import borg.ed.galaxy.constants.ReserveLevel;
+import borg.ed.galaxy.constants.RingClass;
+import borg.ed.galaxy.constants.StarClass;
+import borg.ed.galaxy.constants.TerraformingState;
+import borg.ed.galaxy.constants.VolcanismType;
+import borg.ed.galaxy.exceptions.NonUniqueResultException;
+import borg.ed.galaxy.model.Body;
+import borg.ed.galaxy.model.StarSystem;
+import borg.ed.galaxy.model.Body.AtmosphereShare;
+import borg.ed.galaxy.model.Body.BodyShare;
+import borg.ed.galaxy.model.Body.MaterialShare;
+import borg.ed.galaxy.model.Body.Ring;
+import borg.ed.galaxy.repository.StarSystemRepository;
+import borg.ed.galaxy.service.GalaxyService;
+import borg.ed.galaxy.util.MiscUtil;
 
 public class EdsmBodiesReader {
 
@@ -54,7 +54,7 @@ public class EdsmBodiesReader {
 	private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Autowired
-	private UniverseService universeService = null;
+	private GalaxyService galaxyService = null;
 
 	@Autowired
 	private ElasticBufferThread eddnBufferThread = null;
@@ -133,7 +133,7 @@ public class EdsmBodiesReader {
 					data.remove("systemId");
 					data.remove("systemId64");
 
-					StarSystem starSystem = this.universeService.findStarSystemByName(systemName);
+					StarSystem starSystem = this.galaxyService.findStarSystemByName(systemName);
 
 					if (!data.isEmpty()) {
 						logger.warn("Unknown attributes: " + data);

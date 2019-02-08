@@ -1,7 +1,9 @@
 package borg.ed.eddbupdate.eddb;
 
-import borg.ed.universe.data.Coord;
 import com.google.gson.annotations.SerializedName;
+
+import borg.ed.galaxy.data.Coord;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;

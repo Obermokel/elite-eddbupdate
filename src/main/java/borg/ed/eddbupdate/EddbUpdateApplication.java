@@ -12,8 +12,8 @@ import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
 import borg.ed.eddbupdate.eddndump.EddnDumpReader;
 import borg.ed.eddbupdate.edsm.EdsmBodiesReader;
 import borg.ed.eddbupdate.edsm.EdsmSystemsReader;
-import borg.ed.universe.UniverseApplication;
-import borg.ed.universe.eddn.EddnElasticUpdater;
+import borg.ed.galaxy.GalaxyApplication;
+import borg.ed.galaxy.eddn.EddnElasticUpdater;
 
 /**
  * EddbUpdateApplication
@@ -21,7 +21,7 @@ import borg.ed.universe.eddn.EddnElasticUpdater;
  * @author <a href="mailto:b.guenther@xsite.de">Boris Guenther</a>
  */
 @Configuration
-@Import(UniverseApplication.class)
+@Import(GalaxyApplication.class)
 public class EddbUpdateApplication {
 
 	static final Logger logger = LoggerFactory.getLogger(EddbUpdateApplication.class);
