@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.eddbupdate.eddndump.EddnBufferThread;
+import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
 import borg.ed.universe.data.Coord;
 import borg.ed.universe.model.StarSystem;
 import borg.ed.universe.util.MiscUtil;
@@ -36,7 +36,7 @@ public class EdsmSystemsReader {
 	private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Autowired
-	private EddnBufferThread eddnBufferThread = null;
+	private ElasticBufferThread eddnBufferThread = null;
 
 	@SuppressWarnings("unchecked")
 	public void loadEdsmDumpIntoElasticsearch() throws IOException, InterruptedException {

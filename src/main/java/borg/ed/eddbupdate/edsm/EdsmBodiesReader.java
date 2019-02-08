@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import borg.ed.eddbupdate.eddndump.EddnBufferThread;
+import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
 import borg.ed.universe.constants.AtmosphereType;
 import borg.ed.universe.constants.BodyAtmosphere;
 import borg.ed.universe.constants.BodyComposition;
@@ -57,7 +57,7 @@ public class EdsmBodiesReader {
 	private UniverseService universeService = null;
 
 	@Autowired
-	private EddnBufferThread eddnBufferThread = null;
+	private ElasticBufferThread eddnBufferThread = null;
 
 	@Autowired
 	private StarSystemRepository starSystemRepository = null;

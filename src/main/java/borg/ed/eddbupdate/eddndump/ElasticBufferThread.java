@@ -13,9 +13,9 @@ import borg.ed.universe.model.StarSystem;
 import borg.ed.universe.repository.BodyRepository;
 import borg.ed.universe.repository.StarSystemRepository;
 
-public class EddnBufferThread extends Thread {
+public class ElasticBufferThread extends Thread {
 
-	static final Logger logger = LoggerFactory.getLogger(EddnBufferThread.class);
+	static final Logger logger = LoggerFactory.getLogger(ElasticBufferThread.class);
 
 	public volatile boolean shutdown = false;
 
@@ -29,8 +29,8 @@ public class EddnBufferThread extends Thread {
 
 	private LinkedList<Body> bodyBuffer = new LinkedList<>();
 
-	public EddnBufferThread() {
-		this.setName("EddnBufferThread");
+	public ElasticBufferThread() {
+		this.setName("ElasticBufferThread");
 		this.setDaemon(true);
 	}
 

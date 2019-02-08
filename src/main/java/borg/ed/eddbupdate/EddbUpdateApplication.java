@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import borg.ed.eddbupdate.eddndump.EddnBufferThread;
+import borg.ed.eddbupdate.eddndump.ElasticBufferThread;
 import borg.ed.eddbupdate.eddndump.EddnDumpReader;
 import borg.ed.eddbupdate.edsm.EdsmBodiesReader;
 import borg.ed.eddbupdate.edsm.EdsmSystemsReader;
@@ -29,7 +29,7 @@ public class EddbUpdateApplication {
 	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(EddbUpdateApplication.class);
 
 	public static void main(String[] args) throws Exception {
-		EddnBufferThread bufferThread = APPCTX.getBean(EddnBufferThread.class);
+		ElasticBufferThread bufferThread = APPCTX.getBean(ElasticBufferThread.class);
 		bufferThread.start();
 
 		EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
@@ -43,8 +43,8 @@ public class EddbUpdateApplication {
 	}
 
 	@Bean
-	public EddnBufferThread eddnBufferThread() {
-		return new EddnBufferThread();
+	public ElasticBufferThread eddnBufferThread() {
+		return new ElasticBufferThread();
 	}
 
 	@Bean

@@ -58,7 +58,7 @@ public class EddnDumpReader {
 	private JournalConverter journalConverter = null;
 
 	@Autowired
-	private EddnBufferThread eddnBufferThread = null;
+	private ElasticBufferThread eddnBufferThread = null;
 
 	public void loadEddnDumpsIntoElasticsearch() throws InterruptedException {
 		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
