@@ -63,9 +63,9 @@ public class EddnDumpReader {
 
 	public void loadEddnDumpsIntoElasticsearch() throws InterruptedException {
 		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_until_3_3"));
-		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
+		//this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3"));
 		this.readDumpsFromDir(new File("X:\\Spiele\\Elite Dangerous\\eddndump_since_3_3_03"));
-		this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
+		//this.readDumpsFromDir(new File(System.getProperty("user.home"), "eddndump"));
 	}
 
 	private void readDumpsFromDir(File eddnDumpDir) throws InterruptedException {
