@@ -40,7 +40,12 @@ public class EdsmSystemsReader {
 
 	@SuppressWarnings("unchecked")
 	public void loadEdsmDumpIntoElasticsearch() throws IOException, InterruptedException {
-		File dumpFile = new File("X:\\Spiele\\Elite Dangerous\\systemsWithCoordinates.json");
+		File homeFile = new File(System.getProperty("user.home"), "systemsWithCoordinates.json");
+		File networkFile = new File("X:\\Spiele\\Elite Dangerous\\systemsWithCoordinates.json");
+		File dumpFile = networkFile;
+		if (homeFile.exists() && homeFile.length() == networkFile.length()) {
+			dumpFile = homeFile;
+		}
 
 		logger.info("Reading " + dumpFile + "...");
 

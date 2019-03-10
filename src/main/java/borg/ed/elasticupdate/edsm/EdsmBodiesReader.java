@@ -64,7 +64,12 @@ public class EdsmBodiesReader {
 
 	@SuppressWarnings("unchecked")
 	public void loadEdsmDumpIntoElasticsearch() throws IOException, InterruptedException {
-		File dumpFile = new File("X:\\Spiele\\Elite Dangerous\\bodies.json");
+		File homeFile = new File(System.getProperty("user.home"), "bodies.json");
+		File networkFile = new File("X:\\Spiele\\Elite Dangerous\\bodies.json");
+		File dumpFile = networkFile;
+		if (homeFile.exists() && homeFile.length() == networkFile.length()) {
+			dumpFile = homeFile;
+		}
 
 		logger.info("Reading " + dumpFile + "...");
 
