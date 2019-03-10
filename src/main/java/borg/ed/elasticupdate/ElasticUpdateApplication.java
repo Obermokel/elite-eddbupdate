@@ -1,5 +1,10 @@
 package borg.ed.elasticupdate;
 
+import java.util.Map;
+
+import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.collect.MapBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -29,17 +34,31 @@ public class ElasticUpdateApplication {
 	private static final ApplicationContext APPCTX = new AnnotationConfigApplicationContext(ElasticUpdateApplication.class);
 
 	public static void main(String[] args) throws Exception {
-		ElasticBufferThread elasticBufferThread = APPCTX.getBean(ElasticBufferThread.class);
-		elasticBufferThread.start();
+		Client client = APPCTX.getBean(Client.class);
 
-		EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
-		eddnElasticUpdater.setUpdateMinorFactions(false);
+		try {
+			setRefreshIntervalSeconds(client, 60);
 
-		//APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
-		//APPCTX.getBean(EdsmBodiesReader.class).loadEdsmDumpIntoElasticsearch();
-		APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
+			ElasticBufferThread elasticBufferThread = APPCTX.getBean(ElasticBufferThread.class);
+			elasticBufferThread.start();
 
-		Thread.sleep(60_000);
+			EddnElasticUpdater eddnElasticUpdater = APPCTX.getBean(EddnElasticUpdater.class);
+			eddnElasticUpdater.setUpdateMinorFactions(false);
+
+			APPCTX.getBean(EdsmSystemsReader.class).loadEdsmDumpIntoElasticsearch();
+			APPCTX.getBean(EdsmBodiesReader.class).loadEdsmDumpIntoElasticsearch();
+			APPCTX.getBean(EddnDumpReader.class).loadEddnDumpsIntoElasticsearch();
+
+			Thread.sleep(60_000);
+		} finally {
+			setRefreshIntervalSeconds(client, 1);
+		}
+	}
+
+	private static boolean setRefreshIntervalSeconds(Client client, int seconds) {
+		Map<String, String> settingsMap = new MapBuilder<String, String>().put("index.refresh_interval", seconds + "s").map();
+		UpdateSettingsRequest settings = new UpdateSettingsRequest().settings(settingsMap);
+		return client.admin().indices().updateSettings(settings).actionGet().isAcknowledged();
 	}
 
 	@Bean
